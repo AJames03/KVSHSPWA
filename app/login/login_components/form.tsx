@@ -5,12 +5,16 @@ import { supabase } from "@/lib/supabaseClient";
 import Logo from '@/app/favicon.ico';
 import { useRouter } from "next/navigation";
 
+
 export default function Form() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  // Check if user is already logged in
+  const forgetPassword = () => {
+    router.push("/login/otp");
+  }
+
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -54,7 +58,7 @@ export default function Form() {
   return (
     <div className='flex flex-col justify-center items-center sm:p-5 sm:rounded-lg w-screen h-screen
     sm:w-[50%] sm:h-[80%] lg:w-[30%] lg:h-[70%] bg-gradient-to-b from-gray-50 via-sky-50 to-sky-100
-    sm:shadow-[0_5px_10px_0_rgba(0,0,0,0.5)]'>
+    sm:shadow-[0_5px_10px_0_rgba(0,0,0,0.5)] text-black'>
       
       <img src={Logo.src} className='w-20 h-20 self-center' alt="kshslogo" />
       <label className='text-2xl font-bold text-sky-700'>KVSHS LIS</label>
@@ -96,7 +100,7 @@ export default function Form() {
         <button type="submit" className='w-full bg-sky-600 hover:bg-sky-700 text-white 
           font-semibold py-2 rounded-md cursor-pointer'>Login</button>
       </form>
-      <label>Forget Password</label>
+      <label className="text-sky-500 hover:text-sky-700 cursor-pointer" onClick={forgetPassword}>Forget Password</label>
     </div>
   );
 }
