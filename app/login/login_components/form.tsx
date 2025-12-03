@@ -9,50 +9,64 @@ import { useRouter } from "next/navigation";
 export default function Form() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const forgetPassword = () => {
-    router.push("/login/otp");
-  }
-
+  // Redirect if already logged in
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        router.replace("/dashboard"); // redirect to dashboard if logged in
+        router.replace("/dashboard");
       }
     };
     checkSession();
   }, [router]);
 
+  // const forgetPass = () => {
+  //   router.replace("/login/otp");
+  // }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    // Query sa Supabase table
-    const { data: user, error } = await supabase
-      .from("AppUsers")
-      .select("*")
-      .eq("email", email)
-      .single();
+    try {
+      setLoading(true);
 
-    if (error || !user) {
-      alert("Invalid email");
-      console.log(error);
-      return;
+      // Query AppUsers table for the user
+      const { data, error } = await supabase
+        .from("AppUsers")
+        .select("*")
+        .eq("email", email)
+        .single(); // fetch a single record
+
+      if (error) {
+        alert("User not found");
+        setLoading(false);
+        return;
+      }
+
+      // Check if password matches
+      if (data.password !== password) {
+        alert("Incorrect password");
+        setLoading(false);
+        return;
+      }
+
+      // Login successful
+      localStorage.setItem("loggedIn", "true");
+      localStorage.setItem("userEmail", email);
+
+      router.replace("/dashboard");
+
+    } catch (err) {
+      console.error(err);
+      alert("An unexpected error occurred.");
+    } finally {
+      setLoading(false);
     }
 
-    // Compare password (plain text version)
-    if (user.password !== password) {
-      alert("Invalid password");
-      return;
-    }
-
-    // Optional: set session in Supabase (if not using Supabase auth directly)
-    await supabase.auth.setSession({ access_token: "dummy-token" });
-
-    localStorage.setItem("loggedIn", "true");
-    localStorage.setItem("userEmail", email); 
-    router.replace("/dashboard");
   };
 
   return (
@@ -98,9 +112,14 @@ export default function Form() {
         </div>
 
         <button type="submit" className='w-full bg-sky-600 hover:bg-sky-700 text-white 
-          font-semibold py-2 rounded-md cursor-pointer'>Login</button>
+          font-semibold py-2 rounded-md cursor-pointer disabled:bg-gray-400 disabled:cursor-progress' disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </button>
       </form>
-      <label className="text-sky-500 hover:text-sky-700 cursor-pointer" onClick={forgetPassword}>Forget Password</label>
+
+      <label className="text-sky-500 hover:text-sky-700 cursor-pointer mt-2">
+        Forget Password
+      </label>
     </div>
   );
 }
