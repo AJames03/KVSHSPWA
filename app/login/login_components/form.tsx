@@ -4,60 +4,65 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Logo from '@/app/favicon.ico';
 import { useRouter } from "next/navigation";
-
+import LoadingScreen from '@/app/loading/page'
 
 export default function Form() {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
-  // Redirect if already logged in
+  // AUTO REDIRECT KAPAG LOGGED IN NA
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        router.replace("/dashboard");
-      }
-    };
-    checkSession();
+    const loggedIn = localStorage.getItem("loggedIn");
+    const email = localStorage.getItem("userEmail");
+
+    if (loggedIn === "true" && email) {
+      router.replace("/dashboard");
+    }
   }, [router]);
 
-  // const forgetPass = () => {
-  //   router.replace("/login/otp");
-  // }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    
+    setTimeout(() => {
+      setLoading(true);
+    }, 100);
 
     try {
-      setLoading(true);
-
-      // Query AppUsers table for the user
+      // 1. CHECK USER IN DATABASE
       const { data, error } = await supabase
         .from("AppUsers")
         .select("*")
         .eq("email", email)
-        .single(); // fetch a single record
+        .single();
 
-      if (error) {
+      if (error || !data) {
         alert("User not found");
         setLoading(false);
         return;
       }
 
-      // Check if password matches
+      // 2. CHECK PASSWORD
       if (data.password !== password) {
         alert("Incorrect password");
         setLoading(false);
         return;
       }
 
-      // Login successful
+      // 3. UPDATE is_logged_in SA DATABASE
+      await supabase
+        .from("AppUsers")
+        .update({ is_logged_in: true })
+        .eq("email", data.email);
+
+      // 4. SET LOCAL STORAGE
       localStorage.setItem("loggedIn", "true");
       localStorage.setItem("userEmail", email);
 
+      // 5. REDIRECT TO DASHBOARD
       router.replace("/dashboard");
 
     } catch (err) {
@@ -66,8 +71,8 @@ export default function Form() {
     } finally {
       setLoading(false);
     }
-
   };
+
 
   return (
     <div className='flex flex-col justify-center items-center sm:p-5 sm:rounded-lg w-screen h-screen
@@ -89,8 +94,7 @@ export default function Form() {
           />
           <label className='absolute left-3 top-2 text-gray-500 transition-all
             peer-placeholder-shown:top-2 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500
-            peer-focus:-top-2 peer-focus:bg-white peer-focus:text-xs peer-focus:text-gray-700
-            peer-valid:-top-2 peer-valid:bg-white peer-valid:text-xs peer-valid:text-gray-700'>
+            peer-focus:-top-2 peer-focus:bg-white peer-focus:text-xs peer-focus:text-gray-700'>
             Email
           </label>
         </div>
@@ -105,21 +109,25 @@ export default function Form() {
           />
           <label className='absolute left-3 top-2 text-gray-500 transition-all
             peer-placeholder-shown:top-2 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500
-            peer-focus:-top-2 peer-focus:bg-white peer-focus:text-xs peer-focus:text-gray-700
-            peer-valid:-top-2 peer-valid:bg-white peer-valid:text-xs peer-valid:text-gray-700'>
+            peer-focus:-top-2 peer-focus:bg-white peer-focus:text-xs peer-focus:text-gray-700'>
             Password
           </label>
         </div>
 
-        <button type="submit" className='w-full bg-sky-600 hover:bg-sky-700 text-white 
-          font-semibold py-2 rounded-md cursor-pointer disabled:bg-gray-400 disabled:cursor-progress' disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
+        <button
+          type="submit"
+          disabled={loading}
+          className='w-full bg-sky-600 hover:bg-sky-700 text-white 
+          font-semibold py-2 rounded-md cursor-pointer disabled:bg-gray-400'>
+           Login
         </button>
       </form>
 
       <label className="text-sky-500 hover:text-sky-700 cursor-pointer mt-2">
         Forget Password
       </label>
+
+      {loading && <LoadingScreen />}
     </div>
   );
 }

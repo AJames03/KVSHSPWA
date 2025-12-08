@@ -13,14 +13,14 @@ const poppins = Poppins({
 })
 
 
-export default function masterlist() {
+export default function alsmasterlist() {
   const [openStrand, setOpenStrand] = useState(false)
   const [openSection, setOpenSection] = useState(false)
   const [openYearLevel, setOpenYearLevel] = useState(false)
 
-  const [strand, setStrand] = useState('')
-  const [section, setSection] = useState('')
-  const [yearLevel, setYearLevel] = useState('')
+  const [strand, setStrand] = useState('ABM')
+  const [section, setSection] = useState('A')
+  const [yearLevel, setYearLevel] = useState('11')
   const [adviser, setAdviser] = useState('')
   const [students, setStudents] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -29,7 +29,7 @@ export default function masterlist() {
   const [sortColumn, setSortColumn] = useState<string>('name')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
-  const optionStrand: string[] = ['STEM', 'ABM', 'HUMSS', 'TVL-ICT']
+  const optionStrand: string[] = ['ABM', 'HUMSS', 'TVL-ICT']
   const optionSection: string[] = ['A', 'B', 'C', 'D', 'E']
   const optionYearLevel: string[] = ['11', '12']
 
@@ -77,8 +77,8 @@ export default function masterlist() {
     console.log('Fetching students with:', { strand, section, yearLevel })
 
     const { data, error } = await supabase
-      .from('NewStudents')
-      .select('lrn, fname, mname, lname, ename, sex, indigenousPeople, fourPS, bday, age, houseNumber, streetName, barangay, municipality, province, fatherLN, fatherFN, fatherCN, motherLN, motherFN, motherCN, guardianLN, guardianFN, guardianCN, SNEP')
+      .from('ALS')
+      .select('lrn, fname, mname, lname, ename, sex, indigenousPeople, fourPS, bday, age, houseNumber, streetName, barangay, municipality, province, fatherLN, fatherFN, fatherCN, motherLN, motherFN, motherCN, guardianLN, guardianFN, guardianCN')
       .eq('strand', strand)
       .eq('gradeLevel', Number(yearLevel))
       .eq('section', section)
@@ -87,6 +87,7 @@ export default function masterlist() {
       console.error('Error fetching students:', error)
       setStudents([])
     } else {
+      console.log('Fetched students:', data)
       setStudents(data || [])
     }
   }
@@ -164,7 +165,7 @@ export default function masterlist() {
         <label
           className={`${poppins.className} lg:text-lg font-black p-2 lg:bg-white w-full border-b-2`}
         >
-          Master List
+          ALS Master List
         </label>
       </div>
 
@@ -358,7 +359,7 @@ export default function masterlist() {
                       <p className='flex flex-col border-2 p-2 rounded-md border-gray-500 hover:border-blue-500 hover:border-3'>
                         <strong className='text-[12px]'>4Ps Member:</strong> 
                         <label className='text-[16px]'>
-                          {selectedStudent.fourPS === 'No' ? '-' : 'Yes he is a member'}
+                          {selectedStudent.fourPS === 'No' ? '-' : 'Yes'}
                         </label>
                       </p>
                     </span>
