@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 
 const InstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstallButton, setShowInstallButton] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     // 1. I-save ang Event
@@ -15,8 +15,8 @@ const InstallPrompt = () => {
       // I-save ang event reference para magamit mamaya
       setDeferredPrompt(e);
 
-      // Ipakita ang button
-      setShowInstallButton(true);
+      // Ipakita ang modal
+      setShowModal(true);
     };
 
     // Pakinggan ang event na ito sa window
@@ -28,8 +28,8 @@ const InstallPrompt = () => {
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
-      // 2. Itago ang button (opsyonal)
-      setShowInstallButton(false);
+      // Itago ang modal
+      setShowModal(false);
 
       // 3. I-trigger ang installation prompt
       deferredPrompt.prompt();
@@ -44,25 +44,42 @@ const InstallPrompt = () => {
     }
   };
 
-  if (!showInstallButton) {
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
+  if (!showModal) {
     return null; // Huwag ipakita kung hindi pa handa ang browser
   }
 
   return (
-    <button
-      onClick={handleInstallClick}
-      style={{
-        padding: '10px 20px',
-        backgroundColor: '#007bff',
-        color: 'white',
-        border: 'none',
-        borderRadius: '5px',
-        cursor: 'pointer',
-      }}
-    >
-      {/* 4. I-display ang Button (Gamit ang iyong icon o text) */}
-      📥 Install App (PWA)
-    </button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-sm mx-4 shadow-lg">
+        <div className="text-center">
+          <div className="mb-4">
+            <i className="bi bi-download text-4xl text-blue-500"></i>
+          </div>
+          <h2 className="text-xl font-bold mb-2">Install KVSHS LIS</h2>
+          <p className="text-gray-600 mb-6">
+            Install our app for a better experience with offline access and quick launch from your home screen.
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={handleCloseModal}
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50"
+            >
+              Not Now
+            </button>
+            <button
+              onClick={handleInstallClick}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Install App
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

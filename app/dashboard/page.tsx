@@ -11,6 +11,7 @@ import Schedules from '@/app/dashboard/pages/schedules'
 import Grading from '@/app/dashboard/pages/grading'
 import { motion, AnimatePresence } from "framer-motion";
 import LoadingScreen from '@/app/loading/page'
+import InstallPrompt from '@/components/InstallPrompt'
 
 const poppins = Poppins({
   weight: ['400', '700'],
@@ -244,15 +245,17 @@ export default function Page() {
           </button>
 
           <div className="flex items-center gap-4">
-            {profilePicUrl ? (
-              <img
-                src={profilePicUrl}
-                alt="Profile"
-                className="w-8 h-8 rounded-full object-cover"
-              />
-            ) : (
-              <i className="bi bi-person-circle text-2xl"></i>
-            )}
+            <button onClick={() => handleSetTab(0)} className="cursor-pointer">
+              {profilePicUrl ? (
+                <img
+                  src={profilePicUrl}
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <i className="bi bi-person-circle text-2xl"></i>
+              )}
+            </button>
 
             <button onClick={handleLogout} className='relative cursor-pointer group'>
               <i className="bi bi-box-arrow-right text-xl hover:text-gray-500"></i>
@@ -270,7 +273,8 @@ export default function Page() {
           {dashboard()}
         </div>
       </div>
-      {loading && 
+      <InstallPrompt />
+      {loading &&
         <div className='z-1000'>
           <LoadingScreen />
         </div>

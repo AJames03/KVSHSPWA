@@ -99,6 +99,13 @@ export default function YourSched() {
     fetchSchedule()
   }, [])
 
+  const shouldShowSchedule = () => {
+    if (dateData.length === 0) return false
+    const now = new Date()
+    const maxEndTime = Math.max(...dateData.map(s => new Date(today.toDateString() + ' ' + s.time_slot.split(' - ')[1]).getTime()))
+    return now.getTime() <= maxEndTime
+  }
+
   return (
     <div className='w-full h-full text-black bg-white'>
       <div className='w-auto h-full p-2 lg:grid lg:grid-rows-[1fr] items-end '>
@@ -107,49 +114,51 @@ export default function YourSched() {
             <p className={`${poppins.className} text-[24px] font-bold text-blue-500`}>{currentDay}</p>
             <p className={`${poppins.className} text-[14px]`}>Your today's Schedule</p>
           </div>
-          <ul className='w-full h-50 lg:h-95 flex flex-col gap-2 overflow-auto'>
-            {dateData.map((schedule, index) => {
-              // Parse start at end time
-              const [start, end] = schedule.time_slot.split(' - ')
-              const today = new Date()
-              const startDate = new Date(today.toDateString() + ' ' + start)
-              const endDate = new Date(today.toDateString() + ' ' + end)
+          {shouldShowSchedule() && (
+            <ul className='w-full h-50 lg:h-95 flex flex-col gap-2 overflow-auto'>
+              {dateData.map((schedule, index) => {
+                // Parse start at end time
+                const [start, end] = schedule.time_slot.split(' - ')
+                const today = new Date()
+                const startDate = new Date(today.toDateString() + ' ' + start)
+                const endDate = new Date(today.toDateString() + ' ' + end)
 
-              // Check if current time is within the schedule
-              const now = new Date()
-              const highlight = now >= startDate && now <= endDate
-              console.log('Schedule:', schedule.time_slot, 'now:', now.toLocaleTimeString(), 'start:', startDate.toLocaleTimeString(), 'end:', endDate.toLocaleTimeString(), 'highlight:', highlight)
+                // Check if current time is within the schedule
+                const now = new Date()
+                const highlight = now >= startDate && now <= endDate
+                console.log('Schedule:', schedule.time_slot, 'now:', now.toLocaleTimeString(), 'start:', startDate.toLocaleTimeString(), 'end:', endDate.toLocaleTimeString(), 'highlight:', highlight)
 
-              return (
-                <li
-                  key={index}
-                  className={`p-2 rounded-md h-1/2 text-[clamp(14px,18px,20px)]
-                    ${highlight ?
-                    'bg-blue-800 text-white z-5 scale-100 grid grid-cols-[25px_1fr] group'
-                    :
-                    ' z-0 scale-90 odd:bg-sky-50 even:bg-yellow-50'}`}
-                >
-                  <span className='w-1 h-full bg-blue-300 rounded-md' />
-                  <span>
-                    <p className='w-auto truncate font-bold'>
-                      {schedule.subjects?.subject_title || 'No subject'}
-                    </p>
-                    <p className=''>
-                      <i className={`bi ${highlight ? 'bi-clock-fill' : 'bi-clock'} mr-2 ml-2`}></i>
-                      {schedule.time_slot}
-                    </p>
-                    <p className='text-sm ml-2'>
-                      {schedule.sections?.strand} {schedule.sections?.year_level} -{' '}
-                      {schedule.sections?.section_name} 
-                      {schedule.sections?.section_type !== 'Regular' && (
-                        <> ({schedule.sections?.section_type})</>
-                      )}
-                    </p>
-                  </span>
-                </li>
-              )
-            })}
-          </ul>
+                return (
+                  <li
+                    key={index}
+                    className={`p-2 rounded-md h-1/2 text-[clamp(14px,18px,20px)]
+                      ${highlight ?
+                      'bg-blue-800 text-white z-5 scale-100 grid grid-cols-[25px_1fr] group'
+                      :
+                      ' z-0 scale-90 odd:bg-sky-50 even:bg-yellow-50'}`}
+                  >
+                    <span className='w-1 h-full bg-blue-300 rounded-md' />
+                    <span>
+                      <p className='w-100 truncate font-bold'>
+                        {schedule.subjects?.subject_title || 'No subject'}
+                      </p>
+                      <p className=''>
+                        <i className={`bi ${highlight ? 'bi-clock-fill' : 'bi-clock'} mr-2 ml-2`}></i>
+                        {schedule.time_slot}
+                      </p>
+                      <p className='text-sm ml-2'>
+                        {schedule.sections?.strand} {schedule.sections?.year_level} -{' '}
+                        {schedule.sections?.section_name}
+                        {schedule.sections?.section_type !== 'Regular' && (
+                          <> ({schedule.sections?.section_type})</>
+                        )}
+                      </p>
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
         </div>
       </div>
     </div>
