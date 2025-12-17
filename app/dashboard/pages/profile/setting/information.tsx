@@ -41,20 +41,20 @@ export default function Information({
       {/* 🔹 Info Form */}
       <form className='grid md:grid-cols-[auto_1fr] gap-2 max-w-lg'>
         <label>Honorific:</label>
-        <input className='border p-2 rounded' value={honorific} onChange={(e) => setHonorific(e.target.value)} />
+        <input className='border p-2 rounded w-full' value={honorific} onChange={(e) => setHonorific(e.target.value)} />
         <label>First Name:</label>
-        <input className='border p-2 rounded' value={firstname} onChange={(e) => setFirstname(e.target.value)} />
+        <input className='border p-2 rounded w-full' value={firstname} onChange={(e) => setFirstname(e.target.value)} />
 
         <label>Middle Name:</label>
-        <input className='border p-2 rounded' value={middlename} onChange={(e) => setMiddlename(e.target.value)} />
+        <input className='border p-2 rounded w-full' value={middlename} onChange={(e) => setMiddlename(e.target.value)} />
 
         <label>Last Name:</label>
-        <input className='border p-2 rounded' value={surname} onChange={(e) => setSurname(e.target.value)} />
+        <input className='border p-2 rounded w-full' value={surname} onChange={(e) => setSurname(e.target.value)} />
 
         <label>Suffix:</label>
-        <input className='border p-2 rounded' value={suffix} onChange={(e) => setSuffix(e.target.value)} />
+        <input className='border p-2 rounded w-full' value={suffix} onChange={(e) => setSuffix(e.target.value)} />
         <label>Post Nominals:</label>
-        <input className='border p-2 rounded' value={post_nominals} onChange={(e) => setPost_nominals(e.target.value)} />
+        <input className='border p-2 rounded w-full' value={post_nominals} onChange={(e) => setPost_nominals(e.target.value)} />
       </form>
 
       <div className='p-2 mt-2 flex justify-end'>

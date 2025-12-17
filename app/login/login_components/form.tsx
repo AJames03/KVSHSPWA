@@ -148,15 +148,15 @@ export default function Form() {
         </button>
       </form>
 
-      <div className={`${poppins.className} flex flex-row justify-between w-[90%]`}>
-        <label className="text-sky-700 hover:text-sky-900 cursor-pointer mt-2"
+      <div className={`${poppins.className} flex flex-row justify-between w-[clamp(250px,30%,350px)]`}>
+        <label className="text-[clamp(12px,1.5vw,16px)] text-sky-700 hover:text-sky-900 cursor-pointer mt-2"
           onClick={() => router.push("/forgotpassword")}
         >
           Forget Password
         </label>
 
         <span className="w-0.5 h-[70%]  bg-sky-500 self-center" />
-        <label className="text-sky-700 hover:text-sky-900 cursor-pointer mt-2"
+        <label className="text-[clamp(12px,1.5vw,16px)] text-sky-700 hover:text-sky-900 cursor-pointer mt-2"
           onClick={() => router.push("/register")}>
           Create an Account
         </label>

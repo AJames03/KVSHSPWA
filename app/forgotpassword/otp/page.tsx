@@ -94,9 +94,9 @@ export default function OTPPage() {
 
   return (
     <div
-      className={`${poppins.className} fixed bg-white w-screen h-screen text-black flex flex-col justify-center items-center`}
+      className={`${poppins.className} fixed  bg-white w-screen h-screen text-black flex flex-col justify-center items-center`}
     >
-      <div className="flex flex-col justify-center items-center lg:shadow-[4px_4px_10px_0_rgba(0,0,0,0.5)] p-10 lg:rounded-md">
+      <div className="flex flex-col justify-center w-[clamp(300px,80%,500px)] items-center lg:shadow-[4px_4px_10px_0_rgba(0,0,0,0.5)] p-10 lg:rounded-md">
         <i className="bi bi-shield-fill-exclamation text-5xl text-green-600 mb-3"></i>
 
         <label className="font-extrabold text-[clamp(14px,24px,28px)]">
@@ -108,10 +108,10 @@ export default function OTPPage() {
         </p>
 
         <form
-          className="flex flex-col justify-center items-center"
+          className="flex flex-col justify-center items-center w-[clamp(300px,80%,500px)] "
           onSubmit={handleSubmit}
         >
-          <div className="flex flex-row gap-2">
+          <div className="flex flex-row gap-2 ">
             {otp.map((digit, index) => (
               <input
                 key={index}
@@ -124,7 +124,7 @@ export default function OTPPage() {
                 value={digit}
                 onChange={(e) => handleChange(e.target.value, index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
-                className="w-12 h-12 text-center text-xl border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-10 h-10 md:w-12 md:h-12 text-center text-xl border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             ))}
           </div>
