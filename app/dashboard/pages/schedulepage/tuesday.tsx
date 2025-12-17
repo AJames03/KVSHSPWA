@@ -13,7 +13,7 @@ const poppins = Poppins({
 })
 
 
-export default function monday() {
+export default function tuesday() {
   const [mondayData, setMondayData] = useState<any[]>([]) // store schedules
   const [sections, setSections] = useState<any[]>([]) // store sections
   const [selectedSection, setSelectedSection] = useState<string>('') // selected section
@@ -22,7 +22,7 @@ export default function monday() {
   const fetchSections = async () => {
     const { data, error } = await supabase
       .from("schedules")
-      .select("sections(strand, year_level, section_name)")
+      .select("sections(strand, year_level, section_name, section_type)")
 
     if (error) {
       console.error("Error fetching sections:", error)
@@ -47,10 +47,11 @@ export default function monday() {
         sections(
           strand,
           year_level,
-          section_name
+          section_name,
+          section_type
         )
       `)
-      .eq("day", "Tuesday"); 
+      .eq("day", "Tuesday");
 
     if (error) {
       console.error("Error fetching schedules:", error)
@@ -74,21 +75,29 @@ export default function monday() {
     <div className="flex flex-col h-full w-full overflow-hidden">
         <h2 className="text-xl font-bold">Tuesday Schedule</h2>
         <div className="relative mb-4">
-          <div className="p-2 border rounded cursor-pointer" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
-            {selectedSection ? JSON.parse(selectedSection).year_level + ' ' + JSON.parse(selectedSection).strand + ' ' + JSON.parse(selectedSection).section_name : 'Select Section'}
+          <div className="p-2 border rounded cursor-pointer focus-within:rounded-0" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+            {selectedSection 
+              ? (() => {
+                  const sec = JSON.parse(selectedSection);
+                  return `${sec.year_level} ${sec.strand} ${sec.section_name} ${
+                    sec.section_type !== 'Regular' ? sec.section_type : ''
+                  }`;
+                })()
+              : 'Select Section'
+            }
           </div>
           {isDropdownOpen && (
             <ul className="absolute top-full left-0 right-0 border rounded bg-white max-h-40 overflow-y-auto z-10">
               <li className="p-2 cursor-pointer hover:bg-gray-100" onClick={() => { setSelectedSection(''); setIsDropdownOpen(false); }}>Select Section</li>
               {sections.map((s, i) => (
                 <li key={i} className="p-2 cursor-pointer hover:bg-gray-100" onClick={() => { setSelectedSection(JSON.stringify(s)); setIsDropdownOpen(false); }}>
-                  {s.year_level} {s.strand} {s.section_name}
+                  {s.year_level} {s.strand} {s.section_name} {s.section_type !== 'Regular' ? ' ' + s.section_type : ''}
                 </li>
               ))}
             </ul>
           )}
         </div>
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto" onClick={() => {setIsDropdownOpen(false)}}>
             {filteredData.length === 0 ? (
                 <p className="text-center">No schedules for Tuesday</p>
             ) : (
@@ -98,7 +107,7 @@ export default function monday() {
                         key={item.id}
                         className="group odd:bg-gradient-to-b odd:from-yellow-50 odd:to-yellow-100
                                   even:bg-gradient-to-b even:from-sky-100 even:to-sky-200
-                                  text-[clamp(12px,2vw,20px)] 
+                                  text-[clamp(14px,2vw,20px)] 
                                   p-4 lg:flex lg:flex-col justify-between items-center h-full shadow-md rounded-md
                                   grid grid-cols-[3px_1fr] gap-2 " 
                         >
@@ -106,7 +115,7 @@ export default function monday() {
                           <span className="flex flex-col gap-2 text-center cursor-auto" >
                             <p className={`${poppins.className} font-black `}
                             >
-                              {item.sections?.year_level + " " + item.sections?.strand + " " + item.sections?.section_name || "-"}
+                              {item.sections ? `${item.sections.year_level}` : "-"} {item.sections.strand} {item.sections.section_name} {item.sections.section_type !== 'Regular' ? ' ' + item.sections.section_type : ''}
                             </p>
                             
                             <p className={`${poppins.className}

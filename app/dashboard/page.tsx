@@ -8,6 +8,7 @@ import Profile from '@/app/dashboard/pages/profile'
 import Master_List from '@/app/dashboard/pages/masterlist'
 import ALSMasterList from '@/app/dashboard/pages/alsmasterlist'
 import Schedules from '@/app/dashboard/pages/schedules'
+import Grading from '@/app/dashboard/pages/grading'
 import { motion, AnimatePresence } from "framer-motion";
 import LoadingScreen from '@/app/loading/page'
 
@@ -22,6 +23,7 @@ export default function Page() {
   const router = useRouter();
   const [showTooltip, setShowTooltip] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
+  const [profilePicUrl, setProfilePicUrl] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [tab, setTab] = useState(0);
   const [masterlistDropdownOpen, setMasterlistDropdownOpen] = useState(false);
@@ -41,7 +43,7 @@ export default function Page() {
 
     if (email) {
       await supabase
-        .from("AppUsers")
+        .from("teachers")
         .update({ is_logged_in: false })
         .eq("email", email);
     }
@@ -63,6 +65,8 @@ export default function Page() {
         return <ALSMasterList />;
       case 3:
         return <Schedules />;
+      case 4:
+        return <Grading />;
       default:
         return <div>Page 1</div>;
     }
@@ -84,26 +88,55 @@ export default function Page() {
   useEffect(() => {
     if (!mounted) return;
 
-    const fetchUserName = async () => {
-      const email = localStorage.getItem('userEmail');
-      if (!email) return;
+    const email = localStorage.getItem('userEmail');
+    if (!email) return;
 
+    // Initial fetch of user name
+    const fetchUserName = async () => {
       const { data, error } = await supabase
-        .from('AppUsers')
-        .select('full_name')
+        .from('teachers')
+        .select('firstname, surname, profile_pic')
         .eq('email', email)
         .single();
 
       if (!error && data) {
-        setUserName(data.full_name);
+        setUserName(`${data.firstname} ${data.surname}`);
+
+        // Set profile picture URL (already stored as full URL)
+        setProfilePicUrl(data.profile_pic || null)
       }
     };
 
     fetchUserName();
+
+    // Auto-refresh: Subscribe to real-time changes on the teachers table for this user
+    // This ensures the profile picture and name update automatically when changed in the database
+    const channel = supabase
+      .channel('user-updates')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'teachers',
+        filter: `email=eq.${email}`
+      }, (payload) => {
+        // When data changes, update the userName state to reflect the new values
+        if (payload.new) {
+          setUserName(`${payload.new.firstname} ${payload.new.surname}`);
+
+          // Update profile picture URL (already stored as full URL)
+          setProfilePicUrl(payload.new.profile_pic || null)
+        }
+      })
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [mounted]);
 
   return (
-    <div className="flex flex-row lg:grid lg:grid-cols-[200px_1fr] text-black w-screen h-screen 
+    <div className="fixed flex flex-row lg:grid lg:grid-cols-[200px_1fr] text-black w-screen h-screen 
     bg-gradient-to-b from-sky-50 to-sky-200">
       
       {/* Sidebar */}
@@ -155,7 +188,7 @@ export default function Page() {
                     className="ml-4 mt-1 z-10 border-l-4 border-sky-500 overflow-hidden origin-top"
                   >
                     <motion.li
-                      className={`p-2 cursor-pointer hover:bg-gray-100 ml-1
+                      className={`${poppins.className} p-2 cursor-pointer hover:bg-gray-100 ml-1
                         ${tab === 1 ? 'text-black bg-gray-200 hover:bg-gray-200' : ''}`}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -165,7 +198,7 @@ export default function Page() {
                     </motion.li>
 
                     <motion.li
-                      className={`p-2 cursor-pointer hover:bg-gray-100 ml-1
+                      className={`${poppins.className} p-2 cursor-pointer hover:bg-gray-100 ml-1
                         ${tab === 2 ? 'text-black bg-gray-200 hover:bg-gray-200' : ''}`}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -188,6 +221,17 @@ export default function Page() {
               <i className="bi bi-person text-lg"></i>
               <p className={`${poppins.className} text-sm`}>Schedule</p>
             </li>
+
+            <li
+              className={`flex flex-row items-center gap-2 cursor-pointer p-2
+                rounded transition-colors duration-300 hover:bg-sky-100 ${
+                tab === 4 ? 'text-white bg-gradient-to-l  from-sky-300 to-sky-500' : ''
+              }`}
+              onClick={() => { handleSetTab(4); setMasterlistDropdownOpen(false); }} 
+            >
+              <i className="bi bi-file-text"></i>
+              <p className={`${poppins.className} text-sm`}>Grading</p>
+            </li>
           </ul>
         </nav>
       </div>
@@ -200,9 +244,15 @@ export default function Page() {
           </button>
 
           <div className="flex items-center gap-4">
-            <p className={`${poppins.className} font-medium text-sm`}>
-              Welcome, {userName || 'User'}
-            </p>
+            {profilePicUrl ? (
+              <img
+                src={profilePicUrl}
+                alt="Profile"
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            ) : (
+              <i className="bi bi-person-circle text-2xl"></i>
+            )}
 
             <button onClick={handleLogout} className='relative cursor-pointer group'>
               <i className="bi bi-box-arrow-right text-xl hover:text-gray-500"></i>

@@ -5,6 +5,17 @@ import { supabase } from "@/lib/supabaseClient";
 import Logo from '@/app/favicon.ico';
 import { useRouter } from "next/navigation";
 import LoadingScreen from '@/app/loading/page'
+import Register from '@/app/register/page'
+import Forgot from '@/app/forgotpassword/page'
+import { Poppins } from 'next/font/google'
+import bcrypt from 'bcryptjs'
+
+const poppins = Poppins({
+  weight: ['400', '700'],
+  style: ['normal'],
+  subsets: ['latin'],
+  display: 'swap',
+})
 
 export default function Form() {
   const router = useRouter();
@@ -34,7 +45,7 @@ export default function Form() {
     try {
       // 1. CHECK USER IN DATABASE
       const { data, error } = await supabase
-        .from("AppUsers")
+        .from("teachers")
         .select("*")
         .eq("email", email)
         .single();
@@ -45,8 +56,16 @@ export default function Form() {
         return;
       }
 
-      // 2. CHECK PASSWORD
-      if (data.password !== password) {
+      // 2. CHECK IF APPROVED
+      if (data.status !== "Approved") {
+        alert("Your account is not approved yet.");
+        setLoading(false);
+        return;
+      }
+
+      // 3. CHECK PASSWORD
+      const isPasswordValid = await bcrypt.compare(password, data.password);
+      if (!isPasswordValid) {
         alert("Incorrect password");
         setLoading(false);
         return;
@@ -54,7 +73,7 @@ export default function Form() {
 
       // 3. UPDATE is_logged_in SA DATABASE
       await supabase
-        .from("AppUsers")
+        .from("teachers")
         .update({ is_logged_in: true })
         .eq("email", data.email);
 
@@ -76,7 +95,7 @@ export default function Form() {
 
   return (
     <div className='flex flex-col justify-center items-center sm:p-5 sm:rounded-lg w-screen h-screen
-    sm:w-[50%] sm:h-[80%] lg:w-[30%] lg:h-[70%] bg-gradient-to-b from-gray-50 via-sky-50 to-sky-100
+    sm:w-[50%] sm:h-[80%] lg:w-[30%] lg:h-[70%] bg-white
     sm:shadow-[0_5px_10px_0_rgba(0,0,0,0.5)] text-black'>
       
       <img src={Logo.src} className='w-20 h-20 self-center' alt="kshslogo" />
@@ -84,32 +103,38 @@ export default function Form() {
 
       <form onSubmit={handleLogin} className='flex flex-col w-screen sm:w-full gap-3 p-2'>
         
-        <div className='relative w-full lg:w-full'>
+        <div className='relative w-full lg:w-full p-1 border border-gray-400 rounded-md'>
           <input
             type="email"
+            placeholder=" "
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className='peer w-full border border-gray-400 rounded-md px-3 py-2 bg-white outline-none focus:border-blue-500'
+            className='peer w-full px-3 py-2 bg-white outline-none '
             required
           />
           <label className='absolute left-3 top-2 text-gray-500 transition-all
-            peer-placeholder-shown:top-2 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500
-            peer-focus:-top-2 peer-focus:bg-white peer-focus:text-xs peer-focus:text-gray-700'>
+            peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500
+            peer-focus:-top-2 peer-focus:bg-white peer-focus:text-xs peer-focus:text-gray-700
+            peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:text-gray-700 
+            peer-not-placeholder-shown:-top-2 peer-not-placeholder-shown:bg-white '>
             Email
           </label>
         </div>
 
-        <div className='relative lg:w-full'>
+        <div className='relative w-full lg:w-full p-1 border border-gray-400 rounded-md'>
           <input
             type="password"
+            placeholder=" "
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className='peer w-full border border-gray-400 rounded-md px-3 py-2 bg-white outline-none focus:border-blue-500'
+            className='peer w-full px-3 py-2  outline-none '
             required
           />
           <label className='absolute left-3 top-2 text-gray-500 transition-all
-            peer-placeholder-shown:top-2 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500
-            peer-focus:-top-2 peer-focus:bg-white peer-focus:text-xs peer-focus:text-gray-700'>
+            peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500
+            peer-focus:-top-2 peer-focus:bg-white peer-focus:text-xs peer-focus:text-gray-700
+            peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:text-gray-700 
+            peer-not-placeholder-shown:-top-2 peer-not-placeholder-shown:bg-white '>
             Password
           </label>
         </div>
@@ -123,9 +148,19 @@ export default function Form() {
         </button>
       </form>
 
-      <label className="text-sky-500 hover:text-sky-700 cursor-pointer mt-2">
-        Forget Password
-      </label>
+      <div className={`${poppins.className} flex flex-row justify-between w-[90%]`}>
+        <label className="text-sky-700 hover:text-sky-900 cursor-pointer mt-2"
+          onClick={() => router.push("/forgotpassword")}
+        >
+          Forget Password
+        </label>
+
+        <span className="w-0.5 h-[70%]  bg-sky-500 self-center" />
+        <label className="text-sky-700 hover:text-sky-900 cursor-pointer mt-2"
+          onClick={() => router.push("/register")}>
+          Create an Account
+        </label>
+      </div>
 
       {loading && <LoadingScreen />}
     </div>
