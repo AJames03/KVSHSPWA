@@ -29,6 +29,7 @@ export default function Page() {
   const [tab, setTab] = useState(0);
   const [masterlistDropdownOpen, setMasterlistDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleSetTab = (newTab: number) => {
     setTab(newTab);
@@ -257,7 +258,7 @@ export default function Page() {
               )}
             </button>
 
-            <button onClick={handleLogout} className='relative cursor-pointer group'>
+            <button onClick={() => setShowLogoutConfirm(true)} className='relative cursor-pointer group'>
               <i className="bi bi-box-arrow-right text-xl hover:text-gray-500"></i>
               <span className="absolute top-full mb-2 left-1/2 -translate-x-[60%]
                               opacity-0 group-hover:opacity-100
@@ -273,6 +274,18 @@ export default function Page() {
           {dashboard()}
         </div>
       </div>
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <span className='absolute bg-black/50 backdrop-blur-xs w-full h-full' onClick={() => setShowLogoutConfirm(false)}/>
+          <div className="bg-white p-6 rounded-lg shadow-lg z-1">
+            <p className={`${poppins.className} text-lg mb-4`}>Do you want to log out?</p>
+            <div className="grid grid-cols-2 gap-4 w-full justify-center">
+              <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">Yes</button>
+              <button onClick={() => setShowLogoutConfirm(false)} className="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
       <InstallPrompt />
       {loading &&
         <div className='z-1000'>

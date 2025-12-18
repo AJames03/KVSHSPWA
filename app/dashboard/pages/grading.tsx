@@ -224,11 +224,12 @@ export default function Grading() {
 
       <div className='p-2 bg-white max-h-[60vh] overflow-auto'>
         <div className='grid 
-            grid-cols-[400px_150px_150px_250px_120px_150px_150px_250px_120px] 
-            gap-1 text-center text-xl
+            grid-cols-[250px_135px_135px_230px_100px_135px_135px_230px_100px]
+            lg:grid-cols-[400px_150px_150px_250px_120px_150px_150px_250px_120px] 
+            gap-1 text-center text-[clamp(18px,1.5vw,24px)]
             sticky -top-2 z-20
         '>
-          <label className='font-semibold bg-blue-500 p-2 text-white sticky -left-2'>Student Name</label>
+          <label className='font-semibold bg-blue-500 p-2 text-white lg:sticky lg:-left-2'>Student Name</label>
           <label className='font-semibold bg-blue-500 p-2 text-white'>1st Grading</label>
           <label className='font-semibold bg-blue-500 p-2 text-white'>2nd Grading</label>
           <label className='font-semibold bg-blue-500 p-2 text-white'>1st Semester Average</label>
@@ -250,17 +251,18 @@ export default function Grading() {
           return filteredStudents.length === 0 ? (
             <p>No students found {searchTerm ? 'matching the search.' : 'for this section.'}</p>
           ) : (
-            <ul className='flex flex-col gap-1'>
+            <ul className='flex flex-col gap-1 '>
               {filteredStudents.map(({ lrn, lname, fname, mname, ename }, index) => (
-              <li key={index} className='
-                grid grid-cols-[400px_150px_150px_250px_120px_150px_150px_250px_120px]
+              <li key={index} className='grid
+                grid-cols-[250px_135px_135px_230px_100px_135px_135px_230px_100px]
+                lg:grid-cols-[400px_150px_150px_250px_120px_150px_150px_250px_120px]
                 gap-1 group'>
-                <div className='sticky -left-2 flex flex-col p-2 group-odd:bg-gray-100 group-even:bg-cyan-50'>
-                  <span>{lrn}</span>
-                  <span className='text-[clamp(12px,20px,24px)] font-semibold'>{lname}, {fname} {mname} {ename}</span>
+                <div className='lg:sticky lg:-left-2 flex flex-col p-2 group-odd:bg-gray-100 group-even:bg-cyan-50'>
+                  <span className='text-[clamp(12px,1.5vw,16px)]'>{lrn}</span>
+                  <span className='text-[clamp(14px,1.5vw,18px)] font-semibold'>{lname}, {fname} {mname} {ename}</span>
                 </div>
 
-                <div className='flex flex-col justify-center p-2 group-odd:bg-gray-100 group-even:bg-cyan-50'>
+                <div className='flex flex-col justify-center p-2 text-[clamp(14px,1.5vw,18px)] group-odd:bg-gray-100 group-even:bg-cyan-50'>
                   <input
                     type='number'
                     className='text-center text-lg'

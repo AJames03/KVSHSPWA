@@ -323,17 +323,23 @@ export default function Profile() {
           </div>
           <div className='flex flex-col items-center p-2 '>
             <div className='relative w-24 h-24  overflow-hidden '>
-              <img
-                src={
-                  croppedImage
-                    ? URL.createObjectURL(croppedImage)
-                    : selectedImage
-                    ? URL.createObjectURL(selectedImage)
-                    : profilePic || '/default-avatar.png'
-                }
-                alt='Profile'
-                className='w-full h-full rounded-full object-cover'
-              />
+              {croppedImage || selectedImage || profilePic ? (
+                <img
+                  src={
+                    croppedImage
+                      ? URL.createObjectURL(croppedImage)
+                      : selectedImage
+                      ? URL.createObjectURL(selectedImage)
+                      : profilePic || undefined
+                  }
+                  alt='Profile'
+                  className='w-full h-full rounded-full object-cover'
+                />
+              ) : (
+                <div className='w-full h-full rounded-full bg-gray-200 flex items-center justify-center'>
+                  <i className="bi bi-person-fill text-4xl text-gray-500"></i>
+                </div>
+              )}
 
               <label className="absolute z-20 bottom-0 right-0 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center cursor-pointer shadow-4xl">
                 <i className="bi bi-camera-fill text-xl"></i>
@@ -455,17 +461,23 @@ export default function Profile() {
               </div>
               <div className='flex flex-col items-center p-2 '>
                 <div className='relative w-24 h-24  overflow-hidden '>
-                  <img
-                    src={
-                      croppedImage
-                        ? URL.createObjectURL(croppedImage)
-                        : selectedImage
-                        ? URL.createObjectURL(selectedImage)
-                        : profilePic || '/default-avatar.png'
-                    }
-                    alt='Profile'
-                    className='w-full h-full rounded-full object-cover'
-                  />
+                  {croppedImage || selectedImage || profilePic ? (
+                    <img
+                      src={
+                        croppedImage
+                          ? URL.createObjectURL(croppedImage)
+                          : selectedImage
+                          ? URL.createObjectURL(selectedImage)
+                          : profilePic || undefined
+                      }
+                      alt='Profile'
+                      className='w-full h-full rounded-full object-cover'
+                    />
+                  ) : (
+                    <div className='w-full h-full rounded-full bg-gray-200 flex items-center justify-center'>
+                      <i className="bi bi-person-fill text-4xl text-gray-500"></i>
+                    </div>
+                  )}
 
                   <label className="absolute z-20 bottom-0 right-0 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center cursor-pointer shadow-4xl">
                     <i className="bi bi-camera-fill text-xl"></i>

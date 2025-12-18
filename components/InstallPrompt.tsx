@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Logo from '@/app/favicon.ico'
 
 const InstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -53,8 +54,12 @@ const InstallPrompt = () => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-sm mx-4 shadow-lg">
+    <div className="fixed inset-0  flex items-center justify-center z-50">
+      <div className='flex justify-center items-center w-full h-full bg-white z-0'>
+        <img src={Logo.src} className='w-50 h-50 self-center' alt="kshslogo" />
+      </div>
+      <span className='bg-black/50 backdrop-blur-xs fixed inset-0 z-1'/>
+      <div className="bg-white rounded-lg p-6 max-w-sm mx-4 shadow-lg z-2">
         <div className="text-center">
           <div className="mb-4">
             <i className="bi bi-download text-4xl text-blue-500"></i>
