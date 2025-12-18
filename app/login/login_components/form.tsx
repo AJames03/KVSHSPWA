@@ -148,7 +148,7 @@ export default function Form() {
         </button>
       </form>
 
-      <div className={`${poppins.className} flex flex-row justify-between w-[clamp(250px,30%,350px)]`}>
+      <div className={`${poppins.className} flex flex-row justify-between w-[clamp(250px,85%,350px)]`}>
         <label className="text-[clamp(12px,1.5vw,16px)] text-sky-700 hover:text-sky-900 cursor-pointer mt-2"
           onClick={() => router.push("/forgotpassword")}
         >
