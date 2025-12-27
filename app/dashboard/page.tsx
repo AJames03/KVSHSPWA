@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Logo from '@/app/favicon.ico'
+// Using public icon path instead
 import { Poppins } from 'next/font/google'
 import { supabase } from '@/lib/supabaseClient'
 import Profile from '@/app/dashboard/pages/profile'
@@ -138,74 +138,212 @@ export default function Page() {
   }, [mounted]);
 
   return (
-    <div className="fixed flex flex-row lg:grid lg:grid-cols-[200px_1fr] text-black w-screen h-screen 
-    bg-gradient-to-b from-sky-50 to-sky-200">
-      
-      {/* Sidebar */}
-      <div className={`
-        fixed lg:static top-0 left-0 h-full w-[200px] bg-white shadow-[4px_0_6px_-1px_rgba(0,0,0,0.3)]
-        transform transition-transform duration-300 z-50 p-2
-        ${showTooltip ? 'translate-x-0 w-[250px]' : '-translate-x-[200px]'}
-        lg:translate-x-0 
-      `}>
-        <i className="bi bi-list text-xl lg:hidden" onClick={() => setShowTooltip(!showTooltip)}></i>
-        <div className="p-2 flex flex-row justify-start items-center gap-2 border-b-2">
-          <img src={Logo.src} className="w-10 h-10" alt="kshslogo" />
-          <p className={`${poppins.className} text-lg font-bold`}>KVSHS LIS</p>
+    <div className="fixed flex flex-col lg:flex-row lg:grid lg:grid-cols-[240px_1fr] text-gray-800 w-screen h-screen bg-gray-50">
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 safe-area-bottom">
+        <ul className="flex justify-around items-center h-16">
+          <li onClick={() => { handleSetTab(0); setMasterlistDropdownOpen(false); setShowTooltip(false); }}
+            className="flex flex-col items-center justify-center flex-1 cursor-pointer group">
+            <i className={`bi ${tab === 0 ? 'bi-person-fill' : 'bi-person'} text-xl transition-all ${tab === 0 ? 'text-sky-600' : 'text-gray-600'}`}></i>
+            <span className={`text-xs mt-1 ${tab === 0 ? 'text-sky-600 font-semibold' : 'text-gray-600'}`}>Profile</span>
+          </li>
+
+          <li onClick={() => setShowTooltip(true)}
+            className="flex flex-col items-center justify-center flex-1 cursor-pointer">
+            <i className={`bi ${(tab === 1 || tab === 2) ? 'bi-file-earmark-text-fill' : 'bi-file-earmark-text'} text-xl transition-all ${(tab === 1 || tab === 2) ? 'text-sky-600' : 'text-gray-600'}`}></i>
+            <span className={`text-xs mt-1 ${(tab === 1 || tab === 2) ? 'text-sky-600 font-semibold' : 'text-gray-600'}`}>Lists</span>
+          </li>
+
+          <li onClick={() => { handleSetTab(3); setMasterlistDropdownOpen(false); setShowTooltip(false); }}
+            className="flex flex-col items-center justify-center flex-1 cursor-pointer">
+            <i className={`bi ${tab === 3 ? 'bi-calendar-check-fill' : 'bi-calendar-check'} text-xl transition-all ${tab === 3 ? 'text-sky-600' : 'text-gray-600'}`}></i>
+            <span className={`text-xs mt-1 ${tab === 3 ? 'text-sky-600 font-semibold' : 'text-gray-600'}`}>Schedule</span>
+          </li>
+
+          <li onClick={() => { handleSetTab(4); setMasterlistDropdownOpen(false); setShowTooltip(false); }}
+            className="flex flex-col items-center justify-center flex-1 cursor-pointer">
+            <i className={`bi ${tab === 4 ? 'bi-file-text-fill' : 'bi-file-text'} text-xl transition-all ${tab === 4 ? 'text-sky-600' : 'text-gray-600'}`}></i>
+            <span className={`text-xs mt-1 ${tab === 4 ? 'text-sky-600 font-semibold' : 'text-gray-600'}`}>Grading</span>
+          </li>
+        </ul>
+      </nav>
+
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {showTooltip && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
+              onClick={() => setShowTooltip(false)}
+            />
+            <motion.div
+              initial={{ x: -280 }}
+              animate={{ x: 0 }}
+              exit={{ x: -280 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="fixed left-0 top-0 h-full w-[280px] bg-white shadow-2xl z-50 lg:hidden"
+            >
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                  <div className="flex items-center gap-3">
+                    <img src="/icon-192.png" className="w-10 h-10 rounded-lg" alt="kshslogo" />
+                    <p className={`${poppins.className} text-lg font-bold text-gray-800`}>KVSHS LIS</p>
+                  </div>
+                  <button onClick={() => setShowTooltip(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <i className="bi bi-x-lg text-xl text-gray-600"></i>
+                  </button>
+                </div>
+
+                <nav className="flex-1 overflow-y-auto p-4">
+                  <ul className="flex flex-col gap-2">
+                    <li
+                      className={`flex flex-row items-center gap-3 cursor-pointer p-3 rounded-xl transition-all ${
+                        tab === 0 ? 'bg-sky-500 text-white shadow-md' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => { handleSetTab(0); setMasterlistDropdownOpen(false); setShowTooltip(false); }}
+                    >
+                      <i className="bi bi-person text-xl"></i>
+                      <p className={`${poppins.className} text-base font-medium`}>Profile</p>
+                    </li>
+
+                    <li className="relative">
+                      <div
+                        className={`flex flex-row items-center justify-between gap-3 cursor-pointer p-3 rounded-xl transition-all ${
+                          (tab === 1 || tab === 2) ? 'bg-sky-500 text-white shadow-md' : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                        onClick={() => setMasterlistDropdownOpen(!masterlistDropdownOpen)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <i className="bi bi-file-earmark-text text-xl"></i>
+                          <p className={`${poppins.className} text-base font-medium`}>Masterlist</p>
+                        </div>
+                        <i className={`bi bi-chevron-down transition-transform duration-200 ${masterlistDropdownOpen ? "rotate-180" : ""}`}></i>
+                      </div>
+
+                      <AnimatePresence>
+                        {masterlistDropdownOpen && (
+                          <motion.ul
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2, ease: "easeInOut" }}
+                            className="ml-4 mt-2 overflow-hidden space-y-1"
+                          >
+                            <motion.li
+                              className={`${poppins.className} p-3 pl-10 cursor-pointer rounded-lg transition-colors relative ${
+                                tab === 1 ? 'bg-gray-200 text-gray-900 font-medium' : 'text-gray-700 hover:bg-gray-100'
+                              }`}
+                              onClick={() => { handleSetTab(1); setShowTooltip(false); }}
+                            >
+                              {tab === 1 && <div className="absolute left-3 top-1/2 -translate-y-1/2 w-1 h-6 bg-sky-500 rounded-full"></div>}
+                              Regular Student
+                            </motion.li>
+
+                            <motion.li
+                              className={`${poppins.className} p-3 pl-10 cursor-pointer rounded-lg transition-colors relative ${
+                                tab === 2 ? 'bg-gray-200 text-gray-900 font-medium' : 'text-gray-700 hover:bg-gray-100'
+                              }`}
+                              onClick={() => { handleSetTab(2); setShowTooltip(false); }}
+                            >
+                              {tab === 2 && <div className="absolute left-3 top-1/2 -translate-y-1/2 w-1 h-6 bg-sky-500 rounded-full"></div>}
+                              ALS Student
+                            </motion.li>
+                          </motion.ul>
+                        )}
+                      </AnimatePresence>
+                    </li>
+
+                    <li
+                      className={`flex flex-row items-center gap-3 cursor-pointer p-3 rounded-xl transition-all ${
+                        tab === 3 ? 'bg-sky-500 text-white shadow-md' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => { handleSetTab(3); setMasterlistDropdownOpen(false); setShowTooltip(false); }}
+                    >
+                      <i className="bi bi-calendar-check text-xl"></i>
+                      <p className={`${poppins.className} text-base font-medium`}>Schedule</p>
+                    </li>
+
+                    <li
+                      className={`flex flex-row items-center gap-3 cursor-pointer p-3 rounded-xl transition-all ${
+                        tab === 4 ? 'bg-sky-500 text-white shadow-md' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => { handleSetTab(4); setMasterlistDropdownOpen(false); setShowTooltip(false); }}
+                    >
+                      <i className="bi bi-file-text text-xl"></i>
+                      <p className={`${poppins.className} text-base font-medium`}>Grading</p>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex lg:flex-col h-full bg-white shadow-lg">
+        <div className="p-4 flex flex-row justify-start items-center gap-3 border-b border-gray-200">
+          <img src="/icon-192.png" className="w-12 h-12 rounded-lg" alt="kshslogo" />
+          <p className={`${poppins.className} text-xl font-bold text-gray-800`}>KVSHS LIS</p>
         </div>
 
-        <nav>
-          <ul className="flex flex-col gap-2 p-2">
+        <nav className="flex-1 overflow-y-auto p-4">
+          <ul className="flex flex-col gap-2">
             <li
-              className={`flex flex-row items-center gap-2 cursor-pointer p-2
-                rounded transition-colors duration-300 hover:bg-sky-100 ${
-                tab === 0 ? 'text-white bg-gradient-to-l  from-sky-300 to-sky-500' : ''
+              className={`flex flex-row items-center gap-3 cursor-pointer p-3 rounded-xl transition-all ${
+                tab === 0 ? 'bg-sky-500 text-white shadow-md' : 'text-gray-700 hover:bg-gray-100'
               }`}
-              onClick={() => { handleSetTab(0); setMasterlistDropdownOpen(false); }} 
+              onClick={() => { handleSetTab(0); setMasterlistDropdownOpen(false); }}
             >
-              <i className="bi bi-person text-lg"></i>
-              <p className={`${poppins.className} text-sm`}>Profile</p>
+              <i className="bi bi-person text-xl"></i>
+              <p className={`${poppins.className} text-base font-medium`}>Profile</p>
             </li>
 
             <li className="relative">
               <div
-                className={`flex flex-row items-center gap-2 cursor-pointer p-2
-                  hover:bg-sky-100 rounded transition-colors duration-300 ${
-                  tab === 1 ? 'text-white bg-gradient-to-l from-sky-300 to-sky-500' : ''
-                } ${tab === 2 ? 'text-white bg-gradient-to-l from-sky-300 to-sky-500' : ''}`}
+                className={`flex flex-row items-center justify-between gap-3 cursor-pointer p-3 rounded-xl transition-all ${
+                  (tab === 1 || tab === 2) ? 'bg-sky-500 text-white shadow-md' : 'text-gray-700 hover:bg-gray-100'
+                }`}
                 onClick={() => setMasterlistDropdownOpen(!masterlistDropdownOpen)}
               >
-                <i className="bi bi-file-earmark-text text-lg"></i>
-                <p className={`${poppins.className} text-sm`}>Masterlist</p>
+                <div className="flex items-center gap-3">
+                  <i className="bi bi-file-earmark-text text-xl"></i>
+                  <p className={`${poppins.className} text-base font-medium`}>Masterlist</p>
+                </div>
                 <i className={`bi bi-chevron-down transition-transform duration-200 ${masterlistDropdownOpen ? "rotate-180" : ""}`}></i>
               </div>
 
               <AnimatePresence>
                 {masterlistDropdownOpen && (
                   <motion.ul
-                    initial={{ height: 0, opacity: 0, y: -10 }}
-                    animate={{ height: "auto", opacity: 1, y: 0 }}
-                    exit={{ height: 0, opacity: 0, y: 0 }}
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.2, ease: "easeInOut" }}
-                    className="ml-4 mt-1 z-10 border-l-4 border-sky-500 overflow-hidden origin-top"
+                    className="ml-4 mt-2 overflow-hidden space-y-1"
                   >
                     <motion.li
-                      className={`${poppins.className} p-2 cursor-pointer hover:bg-gray-100 ml-1
-                        ${tab === 1 ? 'text-black bg-gray-200 hover:bg-gray-200' : ''}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
+                      className={`${poppins.className} p-3 pl-10 cursor-pointer rounded-lg transition-colors relative ${
+                        tab === 1 ? 'bg-gray-200 text-gray-900 font-medium' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
                       onClick={() => { handleSetTab(1); }}
                     >
+                      {tab === 1 && <div className="absolute left-3 top-1/2 -translate-y-1/2 w-1 h-6 bg-sky-500 rounded-full"></div>}
                       Regular Student
                     </motion.li>
 
                     <motion.li
-                      className={`${poppins.className} p-2 cursor-pointer hover:bg-gray-100 ml-1
-                        ${tab === 2 ? 'text-black bg-gray-200 hover:bg-gray-200' : ''}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
+                      className={`${poppins.className} p-3 pl-10 cursor-pointer rounded-lg transition-colors relative ${
+                        tab === 2 ? 'bg-gray-200 text-gray-900 font-medium' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
                       onClick={() => { handleSetTab(2); }}
                     >
+                      {tab === 2 && <div className="absolute left-3 top-1/2 -translate-y-1/2 w-1 h-6 bg-sky-500 rounded-full"></div>}
                       ALS Student
                     </motion.li>
                   </motion.ul>
@@ -214,77 +352,106 @@ export default function Page() {
             </li>
 
             <li
-              className={`flex flex-row items-center gap-2 cursor-pointer p-2
-                rounded transition-colors duration-300 hover:bg-sky-100 ${
-                tab === 3 ? 'text-white bg-gradient-to-l  from-sky-300 to-sky-500' : ''
+              className={`flex flex-row items-center gap-3 cursor-pointer p-3 rounded-xl transition-all ${
+                tab === 3 ? 'bg-sky-500 text-white shadow-md' : 'text-gray-700 hover:bg-gray-100'
               }`}
-              onClick={() => { handleSetTab(3); setMasterlistDropdownOpen(false); }} 
+              onClick={() => { handleSetTab(3); setMasterlistDropdownOpen(false); }}
             >
-              <i className="bi bi-person text-lg"></i>
-              <p className={`${poppins.className} text-sm`}>Schedule</p>
+              <i className="bi bi-calendar-check text-xl"></i>
+              <p className={`${poppins.className} text-base font-medium`}>Schedule</p>
             </li>
 
             <li
-              className={`flex flex-row items-center gap-2 cursor-pointer p-2
-                rounded transition-colors duration-300 hover:bg-sky-100 ${
-                tab === 4 ? 'text-white bg-gradient-to-l  from-sky-300 to-sky-500' : ''
+              className={`flex flex-row items-center gap-3 cursor-pointer p-3 rounded-xl transition-all ${
+                tab === 4 ? 'bg-sky-500 text-white shadow-md' : 'text-gray-700 hover:bg-gray-100'
               }`}
-              onClick={() => { handleSetTab(4); setMasterlistDropdownOpen(false); }} 
+              onClick={() => { handleSetTab(4); setMasterlistDropdownOpen(false); }}
             >
-              <i className="bi bi-file-text"></i>
-              <p className={`${poppins.className} text-sm`}>Grading</p>
+              <i className="bi bi-file-text text-xl"></i>
+              <p className={`${poppins.className} text-base font-medium`}>Grading</p>
             </li>
           </ul>
         </nav>
       </div>
 
       {/* Main Content */}
-      <div className='grid grid-rows-[50px_1fr] w-full'>
-        <nav className='bg-sky-100 flex flex-row justify-between items-center p-4 relative'>
-          <button onClick={() => setShowTooltip(!showTooltip)}>
-            <i className="bi bi-list lg:hidden text-xl"></i>
-          </button>
-
-          <div className="flex items-center gap-4">
-            <button onClick={() => handleSetTab(0)} className="cursor-pointer">
+      <div className='flex flex-col w-full h-full'>
+        <header className='bg-white border-b border-gray-200 flex flex-row justify-between items-center px-4 py-3 lg:px-6 lg:py-4 shadow-sm'>
+          <div className="flex items-center gap-3">
+            <button onClick={() => handleSetTab(0)} className="cursor-pointer hover:scale-105 transition-transform">
               {profilePicUrl ? (
                 <img
                   src={profilePicUrl}
                   alt="Profile"
-                  className="w-8 h-8 rounded-full object-cover"
+                  className="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover ring-2 ring-gray-200"
                 />
               ) : (
-                <i className="bi bi-person-circle text-2xl"></i>
+                <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center">
+                  <i className="bi bi-person-fill text-white text-xl lg:text-2xl"></i>
+                </div>
               )}
             </button>
-
-            <button onClick={() => setShowLogoutConfirm(true)} className='relative cursor-pointer group'>
-              <i className="bi bi-box-arrow-right text-xl hover:text-gray-500"></i>
-              <span className="absolute top-full mb-2 left-1/2 -translate-x-[60%]
-                              opacity-0 group-hover:opacity-100
-                              transition-opacity duration-300
-                              bg-gray-500 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
-                Logout
-              </span>
-            </button>
-          </div>
-        </nav>
-
-        <div className='lg:p-2 overflow-auto' onClick={() => setShowTooltip(false)}>
-          {dashboard()}
-        </div>
-      </div>
-      {showLogoutConfirm && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <span className='absolute bg-black/50 backdrop-blur-xs w-full h-full' onClick={() => setShowLogoutConfirm(false)}/>
-          <div className="bg-white p-6 rounded-lg shadow-lg z-1">
-            <p className={`${poppins.className} text-lg mb-4`}>Do you want to log out?</p>
-            <div className="grid grid-cols-2 gap-4 w-full justify-center">
-              <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">Yes</button>
-              <button onClick={() => setShowLogoutConfirm(false)} className="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+            <div className="hidden sm:block">
+              <p className={`${poppins.className} text-sm text-gray-500`}>Welcome back</p>
+              <p className={`${poppins.className} text-base font-semibold text-gray-800`}>{userName || 'Teacher'}</p>
             </div>
           </div>
-        </div>
+
+          <button onClick={() => setShowLogoutConfirm(true)}
+            className='flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all group'>
+            <i className="bi bi-box-arrow-right text-lg group-hover:translate-x-1 transition-transform"></i>
+            <span className="hidden sm:inline text-sm font-medium">Logout</span>
+          </button>
+        </header>
+
+        <main className='flex-1 overflow-auto pb-20 lg:pb-4'>
+          <motion.div
+            key={tab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2 }}
+          >
+            {dashboard()}
+          </motion.div>
+        </main>
+      </div>
+
+      {showLogoutConfirm && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 flex items-center justify-center z-50 p-4">
+          <motion.span
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className='absolute bg-black/60 backdrop-blur-sm w-full h-full'
+            onClick={() => setShowLogoutConfirm(false)}
+          />
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white p-6 rounded-2xl shadow-2xl z-1 max-w-sm w-full">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <i className="bi bi-box-arrow-right text-3xl text-red-600"></i>
+              </div>
+              <h3 className={`${poppins.className} text-xl font-bold text-gray-800 mb-2`}>Logout</h3>
+              <p className={`${poppins.className} text-gray-600 mb-6`}>Are you sure you want to log out?</p>
+              <div className="grid grid-cols-2 gap-3 w-full">
+                <button onClick={() => setShowLogoutConfirm(false)}
+                  className="px-4 py-3 rounded-xl border-2 border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+                  Cancel
+                </button>
+                <button onClick={handleLogout}
+                  className="px-4 py-3 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 transition-colors">
+                  Logout
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
       )}
       <InstallPrompt />
       {loading &&
