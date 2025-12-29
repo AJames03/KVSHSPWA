@@ -1,17 +1,18 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Poppins } from 'next/font/google'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
 import bcrypt from 'bcryptjs'
+
 const poppins = Poppins({
-  weight: ['400', '700'],
+  weight: ['400', '600', '700'],
   style: ['normal'],
   subsets: ['latin'],
   display: 'swap',
 })
 
-export default function page() {
+export default function Page() {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -28,8 +29,7 @@ export default function page() {
             return;
         }
         try {
-            // Check if email already exists
-            const { data: existingUser, error: checkError } = await supabase
+            const { data: existingUser } = await supabase
                 .from('teachers')
                 .select('email')
                 .eq('email', email)
@@ -42,9 +42,18 @@ export default function page() {
 
             const hashedPassword = await bcrypt.hash(password, 10);
 
-            const { data, error } = await supabase
+            const { error } = await supabase
                 .from('teachers')
-                .insert([{ email, password: hashedPassword, surname, firstname, middlename, suffix, status: 'Pending' }]);
+                .insert([{ 
+                    email, 
+                    password: hashedPassword, 
+                    surname, 
+                    firstname, 
+                    middlename, 
+                    suffix, 
+                    status: 'Pending' 
+                }]);
+
             if (error) {
                 alert('Error registering: ' + error.message);
             } else {
@@ -55,60 +64,71 @@ export default function page() {
             alert('An unexpected error occurred');
         }
     };
-  return (
-    <div className={`${poppins.className} flex flex-col justify-center items-center
-            lg:bg-gray-50 text-black
-            w-screen h-screen bg-white`}>
-        <div className='flex flex-col items-center p-5 sm:p-5 sm:rounded-lg w-screen h-150
-                sm:h-auto sm:w-[50%] lg:w-[30%] bg-white
-                sm:shadow-[0_5px_10px_0_rgba(0,0,0,0.5)] text-black'>
-            <div className='flex flex-col items-center w-full mb-5'>
-                <h1 className='text-2xl font-bold w-full'>Register</h1>
-                <label className='w-full'>Please register to login</label>
-            </div>
-            <form onSubmit={handleRegister} className='grid grid-rows-[1fr_50px] grid-cols-1 justify-center items-center w-full h-full gap-2  '>
-                <div className='flex flex-col items-center gap-2 w-full h-full '>
-                    
-                    <span className='w-[90%] bg-gray-50 p-2 flex flex-rows gap-5 rounded-lg'>
-                        <input type="text" placeholder='First Name' value={firstname} onChange={(e) => setFirstname(e.target.value)} className='outline-none w-full' required/>
-                    </span>
-                    <span className='w-[90%] bg-gray-50 p-2 flex flex-rows gap-5 rounded-lg'>
-                        <input type="text" placeholder='Middle Name' value={middlename} onChange={(e) => setMiddlename(e.target.value)} className='outline-none w-full' required/>
-                    </span>
-                    <span className='w-[90%] bg-gray-50 p-2 flex flex-rows gap-5 rounded-lg'>
-                        <input type="text" placeholder='Last Name' value={surname} onChange={(e) => setSurname(e.target.value)} className='outline-none w-full' required/>
-                    </span>
-                    <span className='w-[90%] bg-gray-50 p-2 flex flex-rows gap-5 rounded-lg'>
-                        <input type="text" placeholder='Suffix' value={suffix} onChange={(e) => setSuffix(e.target.value)} className='outline-none w-full' />
-                    </span>
 
-                    <span className='w-[95%] h-1 bg-gray-200 rounded-full' />
-
-                    <span className='w-[90%] bg-gray-50 p-2 flex flex-rows gap-5 rounded-lg'>
-                        <i className="bi bi-person-circle text-center"></i>
-                        <input type="email" placeholder='Email' value={email} onChange={(e) => setEmail(e.target.value)} className='outline-none w-full' required/>
-                    </span>
-                    <span className='w-[90%] bg-gray-50 p-2 flex flex-rows gap-5 rounded-lg'>
-                        <i className="bi bi-lock-fill text-center"></i>
-                        <input type="password" placeholder='Create Password' value={password} onChange={(e) => setPassword(e.target.value)} className='outline-none w-full' required/>
-                    </span>
-                    <span className='w-[90%] bg-gray-50 p-2 flex flex-rows gap-5 rounded-lg'>
-                        <i className="bi bi-shield-lock-fill text-center"></i>
-                        <input type="password" placeholder='Confirm Password' value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className='outline-none w-full' required/>
-                    </span>
+    return (
+        <div className={`${poppins.className} min-h-screen w-full flex items-center justify-center bg-gradient-to-tr from-blue-100 via-white to-blue-200 p-4`}>
+            
+            {/* Main Card Container */}
+            <div className='flex flex-col items-center p-8 rounded-[2.5rem] w-full max-w-[450px] bg-white shadow-2xl shadow-blue-200/50 text-black'>
+                
+                <div className='flex flex-col items-center w-full mb-6'>
+                    <h1 className='text-3xl font-bold text-slate-800 tracking-tight'>Register</h1>
+                    <p className='text-gray-500 text-sm mt-1'>Please register to login</p>
                 </div>
-                <button type='submit' className='w-full bg-sky-600 hover:bg-sky-700 text-white 
-                         py-2 rounded-md cursor-pointer'
-                >
-                    Register
-                </button>
-                <label className='text-sm text-center text-blue-700 
-                hover:text-blue-900 cursor-pointer'
-                onClick={() => router.push("/login")}>
-                    Back to login
-                </label>
-            </form>
+
+                <form onSubmit={handleRegister} className='flex flex-col w-full gap-3'>
+                    
+                    {/* Name Fields Section */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className='border border-gray-200 rounded-xl bg-gray-50/50 px-3 py-2'>
+                            <input type="text" placeholder='First Name' value={firstname} onChange={(e) => setFirstname(e.target.value)} className='bg-transparent outline-none w-full text-sm' required/>
+                        </div>
+                        <div className='border border-gray-200 rounded-xl bg-gray-50/50 px-3 py-2'>
+                            <input type="text" placeholder='Last Name' value={surname} onChange={(e) => setSurname(e.target.value)} className='bg-transparent outline-none w-full text-sm' required/>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className='border border-gray-200 rounded-xl bg-gray-50/50 px-3 py-2'>
+                            <input type="text" placeholder='Middle Name' value={middlename} onChange={(e) => setMiddlename(e.target.value)} className='bg-transparent outline-none w-full text-sm' required/>
+                        </div>
+                        <div className='border border-gray-200 rounded-xl bg-gray-50/50 px-3 py-2'>
+                            <input type="text" placeholder='Suffix' value={suffix} onChange={(e) => setSuffix(e.target.value)} className='bg-transparent outline-none w-full text-sm' />
+                        </div>
+                    </div>
+
+                    <div className='w-full h-[1px] bg-gray-100 my-2' />
+
+                    {/* Account Fields Section */}
+                    <div className='flex items-center gap-3 border border-gray-200 rounded-xl bg-gray-50/50 px-4 py-3'>
+                        <i className="bi bi-person-circle text-gray-400"></i>
+                        <input type="email" placeholder='Email Address' value={email} onChange={(e) => setEmail(e.target.value)} className='bg-transparent outline-none w-full text-sm' required/>
+                    </div>
+
+                    <div className='flex items-center gap-3 border border-gray-200 rounded-xl bg-gray-50/50 px-4 py-3'>
+                        <i className="bi bi-lock-fill text-gray-400"></i>
+                        <input type="password" placeholder='Create Password' value={password} onChange={(e) => setPassword(e.target.value)} className='bg-transparent outline-none w-full text-sm' required/>
+                    </div>
+
+                    <div className='flex items-center gap-3 border border-gray-200 rounded-xl bg-gray-50/50 px-4 py-3'>
+                        <i className="bi bi-shield-lock-fill text-gray-400"></i>
+                        <input type="password" placeholder='Confirm Password' value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className='bg-transparent outline-none w-full text-sm' required/>
+                    </div>
+
+                    {/* Gradient Register Button */}
+                    <button type='submit' className='w-full mt-4 bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-4 rounded-full shadow-lg shadow-blue-200 transition-all active:scale-[0.98]'>
+                        Register
+                    </button>
+
+                    <button 
+                        type="button"
+                        className='text-xs font-semibold text-sky-600 hover:text-sky-800 transition-colors text-center mt-4'
+                        onClick={() => router.push("/login")}
+                    >
+                        Already have an account? Back to login
+                    </button>
+                </form>
+            </div>
         </div>
-    </div>
-  )
+    )
 }

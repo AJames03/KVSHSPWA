@@ -14,7 +14,7 @@ import LoadingScreen from '@/app/loading/page'
 import InstallPrompt from '@/components/InstallPrompt'
 
 const poppins = Poppins({
-  weight: ['400', '700'],
+  weight: ['400', '600', '700'],
   style: ['normal'],
   subsets: ['latin'],
   display: 'swap',
@@ -22,12 +22,10 @@ const poppins = Poppins({
 
 export default function Page() {
   const router = useRouter();
-  const [showTooltip, setShowTooltip] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [profilePicUrl, setProfilePicUrl] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [tab, setTab] = useState(0);
-  const [masterlistDropdownOpen, setMasterlistDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
@@ -36,262 +34,184 @@ export default function Page() {
     localStorage.setItem('currentTab', newTab.toString());
   };
 
-  // 🔥 UPDATED LOGOUT FUNCTION (LOCALSTORAGE + SUPABASE)
   const handleLogout = async () => {
-    setTimeout(() => {
-      setLoading(true);
-    }, 100);
+    setLoading(true);
     const email = localStorage.getItem("userEmail");
-
     if (email) {
-      await supabase
-        .from("teachers")
-        .update({ is_logged_in: false })
-        .eq("email", email);
+      await supabase.from("teachers").update({ is_logged_in: false }).eq("email", email);
     }
-
     localStorage.removeItem("loggedIn");
     localStorage.removeItem("userEmail");
-
     router.replace("/login");
   };
 
-  // PAGES TAB NAVIGATION
-  const dashboard = () => {
+  const renderContent = () => {
     switch (tab) {
-      case 0:
-        return <Profile />;
-      case 1:
-        return <Master_List />;
-      case 2:
-        return <ALSMasterList />;
-      case 3:
-        return <Schedules />;
-      case 4:
-        return <Grading />;
-      default:
-        return <div>Page 1</div>;
+      case 0: return <Profile />;
+      case 1: return <Master_List />;
+      case 2: return <ALSMasterList />;
+      case 3: return <Schedules />;
+      case 4: return <Grading />;
+      default: return <Profile />;
     }
   }
 
-  // Fetch user name from Supabase
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Load tab from localStorage on mount
+  useEffect(() => { setMounted(true); }, []);
   useEffect(() => {
     const savedTab = localStorage.getItem('currentTab');
-    if (savedTab) {
-      setTab(Number(savedTab));
-    }
+    if (savedTab) setTab(Number(savedTab));
   }, []);
 
   useEffect(() => {
     if (!mounted) return;
-
     const email = localStorage.getItem('userEmail');
     if (!email) return;
 
-    // Initial fetch of user name
-    const fetchUserName = async () => {
-      const { data, error } = await supabase
-        .from('teachers')
-        .select('firstname, surname, profile_pic')
-        .eq('email', email)
-        .single();
-
-      if (!error && data) {
+    const fetchUser = async () => {
+      const { data } = await supabase.from('teachers').select('firstname, surname, profile_pic').eq('email', email).single();
+      if (data) {
         setUserName(`${data.firstname} ${data.surname}`);
-
-        // Set profile picture URL (already stored as full URL)
-        setProfilePicUrl(data.profile_pic || null)
+        setProfilePicUrl(data.profile_pic || null);
       }
     };
-
-    fetchUserName();
-
-    // Auto-refresh: Subscribe to real-time changes on the teachers table for this user
-    // This ensures the profile picture and name update automatically when changed in the database
-    const channel = supabase
-      .channel('user-updates')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'teachers',
-        filter: `email=eq.${email}`
-      }, (payload) => {
-        // When data changes, update the userName state to reflect the new values
-        if (payload.new) {
-          setUserName(`${payload.new.firstname} ${payload.new.surname}`);
-
-          // Update profile picture URL (already stored as full URL)
-          setProfilePicUrl(payload.new.profile_pic || null)
-        }
-      })
-      .subscribe();
-
-    // Cleanup subscription on unmount
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    fetchUser();
   }, [mounted]);
 
   return (
-    <div className="fixed flex flex-row lg:grid lg:grid-cols-[200px_1fr] text-black w-screen h-screen 
-    bg-gradient-to-b from-sky-50 to-sky-200">
+    <div className={`${poppins.className} flex h-screen w-screen bg-gradient-to-tr from-blue-100 via-white to-blue-200 text-black overflow-hidden`}>
       
-      {/* Sidebar */}
-      <div className={`
-        fixed lg:static top-0 left-0 h-full w-[200px] bg-white shadow-[4px_0_6px_-1px_rgba(0,0,0,0.3)]
-        transform transition-transform duration-300 z-50 p-2
-        ${showTooltip ? 'translate-x-0 w-[250px]' : '-translate-x-[200px]'}
-        lg:translate-x-0 
-      `}>
-        <i className="bi bi-list text-xl lg:hidden" onClick={() => setShowTooltip(!showTooltip)}></i>
-        <div className="p-2 flex flex-row justify-start items-center gap-2 border-b-2">
-          <img src={Logo.src} className="w-10 h-10" alt="kshslogo" />
-          <p className={`${poppins.className} text-lg font-bold`}>KVSHS LIS</p>
-        </div>
-
-        <nav>
-          <ul className="flex flex-col gap-2 p-2">
-            <li
-              className={`flex flex-row items-center gap-2 cursor-pointer p-2
-                rounded transition-colors duration-300 hover:bg-sky-100 ${
-                tab === 0 ? 'text-white bg-gradient-to-l  from-sky-300 to-sky-500' : ''
-              }`}
-              onClick={() => { handleSetTab(0); setMasterlistDropdownOpen(false); }} 
-            >
-              <i className="bi bi-person text-lg"></i>
-              <p className={`${poppins.className} text-sm`}>Profile</p>
-            </li>
-
-            <li className="relative">
-              <div
-                className={`flex flex-row items-center gap-2 cursor-pointer p-2
-                  hover:bg-sky-100 rounded transition-colors duration-300 ${
-                  tab === 1 ? 'text-white bg-gradient-to-l from-sky-300 to-sky-500' : ''
-                } ${tab === 2 ? 'text-white bg-gradient-to-l from-sky-300 to-sky-500' : ''}`}
-                onClick={() => setMasterlistDropdownOpen(!masterlistDropdownOpen)}
-              >
-                <i className="bi bi-file-earmark-text text-lg"></i>
-                <p className={`${poppins.className} text-sm`}>Masterlist</p>
-                <i className={`bi bi-chevron-down transition-transform duration-200 ${masterlistDropdownOpen ? "rotate-180" : ""}`}></i>
-              </div>
-
-              <AnimatePresence>
-                {masterlistDropdownOpen && (
-                  <motion.ul
-                    initial={{ height: 0, opacity: 0, y: -10 }}
-                    animate={{ height: "auto", opacity: 1, y: 0 }}
-                    exit={{ height: 0, opacity: 0, y: 0 }}
-                    transition={{ duration: 0.2, ease: "easeInOut" }}
-                    className="ml-4 mt-1 z-10 border-l-4 border-sky-500 overflow-hidden origin-top"
-                  >
-                    <motion.li
-                      className={`${poppins.className} p-2 cursor-pointer hover:bg-gray-100 ml-1
-                        ${tab === 1 ? 'text-black bg-gray-200 hover:bg-gray-200' : ''}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      onClick={() => { handleSetTab(1); }}
-                    >
-                      Regular Student
-                    </motion.li>
-
-                    <motion.li
-                      className={`${poppins.className} p-2 cursor-pointer hover:bg-gray-100 ml-1
-                        ${tab === 2 ? 'text-black bg-gray-200 hover:bg-gray-200' : ''}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      onClick={() => { handleSetTab(2); }}
-                    >
-                      ALS Student
-                    </motion.li>
-                  </motion.ul>
-                )}
-              </AnimatePresence>
-            </li>
-
-            <li
-              className={`flex flex-row items-center gap-2 cursor-pointer p-2
-                rounded transition-colors duration-300 hover:bg-sky-100 ${
-                tab === 3 ? 'text-white bg-gradient-to-l  from-sky-300 to-sky-500' : ''
-              }`}
-              onClick={() => { handleSetTab(3); setMasterlistDropdownOpen(false); }} 
-            >
-              <i className="bi bi-person text-lg"></i>
-              <p className={`${poppins.className} text-sm`}>Schedule</p>
-            </li>
-
-            <li
-              className={`flex flex-row items-center gap-2 cursor-pointer p-2
-                rounded transition-colors duration-300 hover:bg-sky-100 ${
-                tab === 4 ? 'text-white bg-gradient-to-l  from-sky-300 to-sky-500' : ''
-              }`}
-              onClick={() => { handleSetTab(4); setMasterlistDropdownOpen(false); }} 
-            >
-              <i className="bi bi-file-text"></i>
-              <p className={`${poppins.className} text-sm`}>Grading</p>
-            </li>
-          </ul>
-        </nav>
-      </div>
-
-      {/* Main Content */}
-      <div className='grid grid-rows-[50px_1fr] w-full'>
-        <nav className='bg-sky-100 flex flex-row justify-between items-center p-4 relative'>
-          <button onClick={() => setShowTooltip(!showTooltip)}>
-            <i className="bi bi-list lg:hidden text-xl"></i>
-          </button>
-
-          <div className="flex items-center gap-4">
-            <button onClick={() => handleSetTab(0)} className="cursor-pointer">
-              {profilePicUrl ? (
-                <img
-                  src={profilePicUrl}
-                  alt="Profile"
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-              ) : (
-                <i className="bi bi-person-circle text-2xl"></i>
-              )}
-            </button>
-
-            <button onClick={() => setShowLogoutConfirm(true)} className='relative cursor-pointer group'>
-              <i className="bi bi-box-arrow-right text-xl hover:text-gray-500"></i>
-              <span className="absolute top-full mb-2 left-1/2 -translate-x-[60%]
-                              opacity-0 group-hover:opacity-100
-                              transition-opacity duration-300
-                              bg-gray-500 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
-                Logout
-              </span>
-            </button>
-          </div>
-        </nav>
-
-        <div className='lg:p-2 overflow-auto' onClick={() => setShowTooltip(false)}>
-          {dashboard()}
-        </div>
-      </div>
-      {showLogoutConfirm && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <span className='absolute bg-black/50 backdrop-blur-xs w-full h-full' onClick={() => setShowLogoutConfirm(false)}/>
-          <div className="bg-white p-6 rounded-lg shadow-lg z-1">
-            <p className={`${poppins.className} text-lg mb-4`}>Do you want to log out?</p>
-            <div className="grid grid-cols-2 gap-4 w-full justify-center">
-              <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">Yes</button>
-              <button onClick={() => setShowLogoutConfirm(false)} className="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+      {/* SIDEBAR - Desktop Only (Hidden on Mobile) */}
+      <aside className="hidden lg:flex flex-col w-72 bg-white/70 backdrop-blur-xl border-r border-white/50 p-6 shadow-xl">
+        <div className="flex items-center gap-4 mb-10 p-2 bg-white rounded-2xl shadow-sm border border-blue-50">
+            <img src={Logo.src} alt="logo" className="w-10 h-10 object-contain" />
+            <div>
+                <h1 className="text-lg font-bold text-slate-800 leading-none">KVSHS LIS</h1>
+                <p className="text-[10px] text-sky-600 font-bold uppercase mt-1">Teacher Hub</p>
             </div>
-          </div>
         </div>
-      )}
+
+        <nav className="flex flex-col gap-2 flex-1">
+            <DesktopNavItem icon="person" label="Profile" active={tab === 0} onClick={() => handleSetTab(0)} />
+            <DesktopNavItem icon="file-earmark-text" label="Regular Masterlist" active={tab === 1} onClick={() => handleSetTab(1)} />
+            <DesktopNavItem icon="journal-text" label="ALS Masterlist" active={tab === 2} onClick={() => handleSetTab(2)} />
+            <DesktopNavItem icon="calendar3" label="Schedule" active={tab === 3} onClick={() => handleSetTab(3)} />
+            <DesktopNavItem icon="mortarboard" label="Grading" active={tab === 4} onClick={() => handleSetTab(4)} />
+        </nav>
+
+        <button 
+            onClick={() => setShowLogoutConfirm(true)}
+            className="flex items-center gap-3 p-4 rounded-2xl text-slate-500 hover:bg-red-50 hover:text-red-500 transition-all font-semibold"
+        >
+            <i className="bi bi-box-arrow-right text-xl"></i>
+            <span>Logout Account</span>
+        </button>
+      </aside>
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex flex-col flex-1 h-screen overflow-hidden">
+        
+        {/* MOBILE HEADER (Hidden on Desktop) */}
+        <header className="flex lg:hidden items-center justify-between px-6 pt-10 pb-4 bg-transparent">
+            <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white rounded-xl shadow-md flex items-center justify-center p-2 border border-blue-50">
+                    <img src={Logo.src} alt="logo" className="w-full h-full object-contain" />
+                </div>
+                <h1 className="text-sm font-bold text-slate-800">KVSHS LIS</h1>
+            </div>
+            <button onClick={() => setShowLogoutConfirm(true)} className="w-10 h-10 bg-white/50 backdrop-blur-md rounded-full flex items-center justify-center shadow-sm border border-white">
+                <i className="bi bi-box-arrow-right text-lg"></i>
+            </button>
+        </header>
+
+        {/* DESKTOP TOP BAR (Hidden on Mobile) */}
+        <header className="hidden lg:flex items-center justify-between px-10 py-6 bg-transparent">
+            <h2 className="text-2xl font-bold text-slate-800">
+                {tab === 0 ? "My Profile" : tab === 1 ? "Regular Masterlist" : tab === 2 ? "ALS Masterlist" : tab === 3 ? "Class Schedule" : "Grading Portal"}
+            </h2>
+            <div className="flex items-center gap-4 bg-white/50 backdrop-blur-md p-2 pl-4 rounded-full border border-white">
+                <p className="text-sm font-semibold text-slate-700">{userName || "Teacher"}</p>
+                <div className="w-10 h-10 bg-sky-500 rounded-full overflow-hidden border-2 border-white shadow-sm">
+                    {profilePicUrl ? <img src={profilePicUrl} className="w-full h-full object-cover" /> : <i className="bi bi-person-fill text-white flex items-center justify-center h-full"></i>}
+                </div>
+            </div>
+        </header>
+
+        {/* PAGE CONTENT */}
+        <main className="flex-1 overflow-y-auto px-4 lg:px-10 pb-24 lg:pb-10">
+            <motion.div
+                key={tab}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+                className="h-full"
+            >
+                {renderContent()}
+            </motion.div>
+        </main>
+      </div>
+
+      {/* BOTTOM NAV (Hidden on Desktop) */}
+      <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] h-18 bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl shadow-blue-200/50 rounded-[2rem] flex items-center justify-around px-4 z-[40]">
+        <NavItem icon="person" label="Profile" active={tab === 0} onClick={() => handleSetTab(0)} />
+        <NavItem icon="file-earmark-text" label="Regular" active={tab === 1} onClick={() => handleSetTab(1)} />
+        <NavItem icon="journal-text" label="ALS" active={tab === 2} onClick={() => handleSetTab(2)} />
+        <NavItem icon="calendar3" label="Sched" active={tab === 3} onClick={() => handleSetTab(3)} />
+        <NavItem icon="mortarboard" label="Grading" active={tab === 4} onClick={() => handleSetTab(4)} />
+      </nav>
+
+      {/* LOGOUT CONFIRMATION (Shared) */}
+      <AnimatePresence>
+        {showLogoutConfirm && (
+            <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[100] flex items-end lg:items-center justify-center"
+            >
+                <motion.div 
+                    initial={{ y: "100%", scale: 1 }} 
+                    animate={{ y: 0, scale: 1 }} 
+                    exit={{ y: "100%", scale: 0.9 }}
+                    className="bg-white w-full lg:w-[400px] rounded-t-[2.5rem] lg:rounded-[2.5rem] p-8 pb-10 shadow-2xl"
+                >
+                    <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 lg:hidden" />
+                    <h3 className="text-xl font-bold text-center mb-2 lg:text-left lg:px-2">Logging Out?</h3>
+                    <p className="text-gray-500 text-center lg:text-left lg:px-2 mb-8 italic">Are you sure you want to end your session?</p>
+                    <div className="grid grid-cols-2 gap-4">
+                        <button onClick={() => setShowLogoutConfirm(false)} className="py-4 rounded-2xl font-bold bg-gray-100 hover:bg-gray-200 transition-colors">Cancel</button>
+                        <button onClick={handleLogout} className="py-4 rounded-2xl font-bold bg-gradient-to-r from-red-500 to-pink-600 text-white shadow-lg shadow-red-200 hover:brightness-110 transition-all">Logout</button>
+                    </div>
+                </motion.div>
+            </motion.div>
+        )}
+      </AnimatePresence>
+
       <InstallPrompt />
-      {loading &&
-        <div className='z-1000'>
-          <LoadingScreen />
-        </div>
-      }
+      {loading && <LoadingScreen />}
     </div>
   )
+}
+
+// Mobile Nav Item
+function NavItem({ icon, label, active, onClick }: { icon: string, label: string, active: boolean, onClick: () => void }) {
+    return (
+        <button onClick={onClick} className="flex flex-col items-center justify-center transition-all duration-300 relative">
+            {active && <motion.div layoutId="nav-pill" className="absolute -top-1 w-12 h-1 bg-sky-500 rounded-full" />}
+            <i className={`bi bi-${icon}${active ? '-fill' : ''} text-xl ${active ? 'text-sky-600' : 'text-slate-400'}`}></i>
+            <span className={`text-[10px] mt-1 font-bold ${active ? 'text-sky-600' : 'text-slate-400'}`}>{label}</span>
+        </button>
+    )
+}
+
+// Desktop Nav Item
+function DesktopNavItem({ icon, label, active, onClick }: { icon: string, label: string, active: boolean, onClick: () => void }) {
+    return (
+        <button 
+            onClick={onClick} 
+            className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 font-semibold ${
+                active ? 'bg-sky-500 text-white shadow-lg shadow-sky-200 scale-[1.02]' : 'text-slate-500 hover:bg-white hover:text-sky-600'
+            }`}
+        >
+            <i className={`bi bi-${icon}${active ? '-fill' : ''} text-xl`}></i>
+            <span className="text-sm">{label}</span>
+        </button>
+    )
 }

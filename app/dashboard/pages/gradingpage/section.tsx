@@ -1,54 +1,24 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { Poppins } from 'next/font/google'
+import { motion, AnimatePresence } from 'framer-motion' // Para sa smooth mobile feel
 import { supabase } from '@/lib/supabaseClient'
 
 const poppins = Poppins({
-  weight: ['400', '700'],
-  style: ['normal'],
+  weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
-  display: 'swap',
 })
 
 export default function Section({ onSelect }: { onSelect: (sec: any) => void }) {
-  const [userName, setUserName] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
   const [sections, setSections] = useState<any[]>([])
   const [focusSection, setFocusSection] = useState<string | null>(null)
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Ensure component is mounted
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  useEffect(() => { setMounted(true) }, [])
 
-  // Fetch logged-in teacher name
-  useEffect(() => {
-    if (!mounted) return
-
-    const fetchUserName = async () => {
-      const email = localStorage.getItem('userEmail')
-      if (!email) return
-
-      const { data, error } = await supabase
-        .from('teachers')
-        .select('surname, firstname, middlename, suffix')
-        .eq('email', email)
-        .single()
-
-      if (error) console.error('Error fetching teacher name:', error)
-
-      if (data) {
-        const fullName = `${data.firstname} ${data.middlename ?? ''} ${data.surname} ${data.suffix ?? ''}`.trim();
-        setUserName(fullName);
-      }
-    }
-
-    fetchUserName()
-  }, [mounted])
-
-  // Fetch all sections the teacher teaches (ALL DAYS, UNIQUE ONLY)
+  // Fetch sections logic (Same as original)
   const fetchSections = async () => {
     const email = localStorage.getItem('userEmail')
     if (!email) return
@@ -65,21 +35,19 @@ export default function Section({ onSelect }: { onSelect: (sec: any) => void }) 
 
     if (data) {
       const sectionList = data.map(item => item.sections)
-      // Unique sections
       const uniqueSections = Array.from(
         new Set(sectionList.map((s) => JSON.stringify(s)))
       ).map((s) => JSON.parse(s))
-
       setSections(uniqueSections)
     }
   }
 
-  // Run on load
   useEffect(() => {
     if (!mounted) return
     fetchSections()
   }, [mounted])
 
+  // Click outside to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -90,27 +58,59 @@ export default function Section({ onSelect }: { onSelect: (sec: any) => void }) 
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-
   const selectedSec = sections.find(sec => sec.id === focusSection)
 
   return (
-    <div className={`${poppins.className}  lg:w-50 h-full  p-2`}>
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Section</label>
-        <div className="relative" ref={dropdownRef}>
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="w-full bg-gray-100 border border-gray-300 rounded-md px-4 py-2 text-left flex justify-between items-center hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    <div className={`${poppins.className} w-full`} ref={dropdownRef}>
+      <div className="relative">
+        {/* Mobile-friendly Button */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`
+            w-full flex items-center justify-between gap-2
+            px-4 py-3 rounded-xl transition-all duration-200
+            ${isOpen 
+              ? 'bg-white shadow-md ring-2 ring-blue-500/20' 
+              : 'bg-slate-100/50 hover:bg-slate-100'}
+          `}
+        >
+          <div className="flex flex-col items-start overflow-hidden">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
+              Section
+            </span>
+            <span className="text-sm font-bold text-slate-700 truncate w-full">
+              {selectedSec 
+                ? `${selectedSec.strand} ${selectedSec.year_level}-${selectedSec.section_name}` 
+                : 'Select Section'}
+            </span>
+          </div>
+          
+          <svg 
+            className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} 
+            fill="none" stroke="currentColor" viewBox="0 0 24 24"
           >
-            <span className='w-50 truncate'>{selectedSec ? `${selectedSec.strand} ${selectedSec.year_level} ${selectedSec.section_name}${selectedSec.section_type !== 'Regular' ? ` (${selectedSec.section_type})` : ''}` : 'Select Section'}</span>
-            <svg className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {/* Responsive Dropdown Menu */}
+        <AnimatePresence>
           {isOpen && (
-            <ul className="absolute z-10 w-40 lg:w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
+            <motion.ul
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              className={`
+                absolute z-[60] left-0 right-0 mt-2
+                bg-white border border-slate-100 rounded-2xl shadow-2xl
+                max-h-[300px] overflow-y-auto overflow-x-hidden
+                custom-scrollbar
+              `}
+            >
               {sections.length === 0 ? (
-                <li className="px-4 py-2 text-gray-500 text-sm">No assigned sections.</li>
+                <li className="px-5 py-4 text-slate-400 text-xs text-center italic">
+                  No assigned sections found.
+                </li>
               ) : (
                 sections.map((sec) => (
                   <li
@@ -120,16 +120,30 @@ export default function Section({ onSelect }: { onSelect: (sec: any) => void }) 
                       onSelect(sec)
                       setIsOpen(false)
                     }}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    className={`
+                      px-5 py-4 border-b border-slate-50 last:border-none
+                      hover:bg-blue-50 transition-colors cursor-pointer
+                      flex flex-col gap-0.5
+                    `}
                   >
-                    {sec.strand} {sec.year_level} {sec.section_name}
-                    {sec.section_type !== 'Regular' && <> ({sec.section_type})</>}
+                    <span className="text-sm font-bold text-slate-800">
+                      {sec.strand} {sec.year_level}-{sec.section_name}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${
+                        sec.section_type === 'Regular' 
+                        ? 'bg-emerald-50 text-emerald-600' 
+                        : 'bg-amber-50 text-amber-600'
+                      }`}>
+                        {sec.section_type}
+                      </span>
+                    </div>
                   </li>
                 ))
               )}
-            </ul>
+            </motion.ul>
           )}
-        </div>
+        </AnimatePresence>
       </div>
     </div>
   )

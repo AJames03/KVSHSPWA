@@ -10,7 +10,7 @@ const poppins = Poppins({
     subsets: ['latin'],
 })
 
-export default function page() {
+export default function Page() {
   const [aboutModal, setAboutModal] = React.useState(false);
   return (
     <div className='flex flex-col w-screen h-screen bg-white text-black'>

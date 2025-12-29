@@ -1,5 +1,6 @@
 'use client'
 import LoadingCircleSpinner from '@/components/LoadingCircleSpinner'
+import { motion } from 'framer-motion'
 
 interface InformationProps {
   firstname: string
@@ -20,54 +21,136 @@ interface InformationProps {
 }
 
 export default function Information({
-  firstname,
-  setFirstname,
-  middlename,
-  setMiddlename,
-  surname,
-  setSurname,
-  suffix,
-  setSuffix,
-  honorific,
-  setHonorific,
-  post_nominals,
-  setPost_nominals,
-  loading,
-  uploading,
-  handleSave,
+  firstname, setFirstname,
+  middlename, setMiddlename,
+  surname, setSurname,
+  suffix, setSuffix,
+  honorific, setHonorific,
+  post_nominals, setPost_nominals,
+  loading, uploading, handleSave,
 }: InformationProps) {
   return (
-    <>
-      {/* 🔹 Info Form */}
-      <form className='grid md:grid-cols-[auto_1fr] gap-2 max-w-lg'>
-        <label>Honorific:</label>
-        <input className='border p-2 rounded w-full' value={honorific} onChange={(e) => setHonorific(e.target.value)} />
-        <label>First Name:</label>
-        <input className='border p-2 rounded w-full' value={firstname} onChange={(e) => setFirstname(e.target.value)} />
+    <div className="w-full max-w-xl mx-auto">
+      {/* 🔹 Header Section */}
+      <div className="mb-6 px-1">
+        <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <i className="bi bi-person-lines-fill text-sky-500"></i>
+          Personal Information
+        </h3>
+        <p className="text-xs text-gray-500 italic">Update your public profile details here.</p>
+      </div>
 
-        <label>Middle Name:</label>
-        <input className='border p-2 rounded w-full' value={middlename} onChange={(e) => setMiddlename(e.target.value)} />
+      <form className="grid grid-cols-1 gap-4 px-1">
+        {/* Honorific & Post Nominals Row */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-bold text-sky-700 ml-1">Honorific</label>
+            <input 
+              placeholder="e.g. Mr. / Ms."
+              className="w-full bg-gray-50/50 border border-gray-200 p-3 rounded-2xl outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-all text-sm" 
+              value={honorific} 
+              onChange={(e) => setHonorific(e.target.value)} 
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-bold text-sky-700 ml-1">Post Nominals</label>
+            <input 
+              placeholder="e.g. LPT, MAEd"
+              className="w-full bg-gray-50/50 border border-gray-200 p-3 rounded-2xl outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-all text-sm" 
+              value={post_nominals} 
+              onChange={(e) => setPost_nominals(e.target.value)} 
+            />
+          </div>
+        </div>
 
-        <label>Last Name:</label>
-        <input className='border p-2 rounded w-full' value={surname} onChange={(e) => setSurname(e.target.value)} />
+        {/* Name Fields */}
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-bold text-sky-700 ml-1">First Name</label>
+          <input 
+            className="w-full bg-gray-50/50 border border-gray-200 p-3 rounded-2xl outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-all text-sm" 
+            value={firstname} 
+            onChange={(e) => setFirstname(e.target.value)} 
+          />
+        </div>
 
-        <label>Suffix:</label>
-        <input className='border p-2 rounded w-full' value={suffix} onChange={(e) => setSuffix(e.target.value)} />
-        <label>Post Nominals:</label>
-        <input className='border p-2 rounded w-full' value={post_nominals} onChange={(e) => setPost_nominals(e.target.value)} />
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-bold text-sky-700 ml-1">Middle Name</label>
+          <input 
+            className="w-full bg-gray-50/50 border border-gray-200 p-3 rounded-2xl outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-all text-sm" 
+            value={middlename} 
+            onChange={(e) => setMiddlename(e.target.value)} 
+          />
+        </div>
+
+        {/* Last Name & Suffix Row */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="col-span-2 flex flex-col gap-1">
+            <label className="text-xs font-bold text-sky-700 ml-1">Last Name</label>
+            <input 
+              className="w-full bg-gray-50/50 border border-gray-200 p-3 rounded-2xl outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-all text-sm" 
+              value={surname} 
+              onChange={(e) => setSurname(e.target.value)} 
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-bold text-sky-700 ml-1">Suffix</label>
+            <input 
+              placeholder="Jr."
+              className="w-full bg-gray-50/50 border border-gray-200 p-3 rounded-2xl outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-all text-sm" 
+              value={suffix} 
+              onChange={(e) => setSuffix(e.target.value)} 
+            />
+          </div>
+        </div>
       </form>
 
-      <div className='p-2 mt-2 flex justify-end'>
-        <button
-            type='button'
+      {/* 🚀 Responsive Action Button Section */}
+      <div className="mt-10 px-1 mb-10 lg:mb-0">
+        <div className="flex flex-col lg:flex-row lg:justify-end">
+            <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
+            type="button"
             onClick={handleSave}
             disabled={loading || uploading}
-            className='px-4 py-2 bg-blue-500 text-white rounded flex justify-center items-center gap-2 
-                        w-30 '
-        >
-            {loading || uploading ? <LoadingCircleSpinner /> : 'Save'}
-        </button>
+            className={`
+                /* Mobile: Full Width, Desktop: Auto/Fixed */
+                w-full lg:w-52 
+                /* Padding & Text */
+                py-4 lg:py-3 px-6 
+                /* Colors & Effects */
+                bg-gradient-to-r from-sky-400 to-blue-600 
+                hover:from-sky-500 hover:to-blue-700
+                text-white font-bold text-sm lg:text-base
+                /* Shape & Shadow */
+                rounded-2xl lg:rounded-full shadow-lg shadow-blue-200/50 
+                /* Transitions */
+                transition-all duration-200 
+                /* Flexbox for Loader/Icon alignment */
+                flex justify-center items-center gap-2
+                /* Disabled State */
+                disabled:opacity-50 disabled:cursor-not-allowed
+            `}
+            >
+            {loading || uploading ? (
+                <>
+                <LoadingCircleSpinner />
+                <span>Saving...</span>
+                </>
+            ) : (
+                <>
+                <i className="bi bi-cloud-arrow-up-fill text-lg"></i>
+                <span>Save Changes</span>
+                </>
+            )}
+            </motion.button>
+        </div>
+        
+        {/* Subtle helper text for mobile */}
+        <p className="lg:hidden text-center text-[10px] text-gray-400 mt-4">
+            Make sure all details are correct before saving.
+        </p>
       </div>
-    </>
+    </div>
   )
 }

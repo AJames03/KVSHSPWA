@@ -5,13 +5,11 @@ import { supabase } from "@/lib/supabaseClient";
 import Logo from '@/app/favicon.ico';
 import { useRouter } from "next/navigation";
 import LoadingScreen from '@/app/loading/page'
-import Register from '@/app/register/page'
-import Forgot from '@/app/forgotpassword/page'
 import { Poppins } from 'next/font/google'
 import bcrypt from 'bcryptjs'
 
 const poppins = Poppins({
-  weight: ['400', '700'],
+  weight: ['400', '600', '700'],
   style: ['normal'],
   subsets: ['latin'],
   display: 'swap',
@@ -19,31 +17,23 @@ const poppins = Poppins({
 
 export default function Form() {
   const router = useRouter();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // AUTO REDIRECT KAPAG LOGGED IN NA
   useEffect(() => {
     const loggedIn = localStorage.getItem("loggedIn");
     const email = localStorage.getItem("userEmail");
-
     if (loggedIn === "true" && email) {
       router.replace("/dashboard");
     }
   }, [router]);
 
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    setTimeout(() => {
-      setLoading(true);
-    }, 100);
+    setLoading(true);
 
     try {
-      // 1. CHECK USER IN DATABASE
       const { data, error } = await supabase
         .from("teachers")
         .select("*")
@@ -56,14 +46,12 @@ export default function Form() {
         return;
       }
 
-      // 2. CHECK IF APPROVED
       if (data.status !== "Approved") {
         alert("Your account is not approved yet.");
         setLoading(false);
         return;
       }
 
-      // 3. CHECK PASSWORD
       const isPasswordValid = await bcrypt.compare(password, data.password);
       if (!isPasswordValid) {
         alert("Incorrect password");
@@ -71,17 +59,13 @@ export default function Form() {
         return;
       }
 
-      // 3. UPDATE is_logged_in SA DATABASE
       await supabase
         .from("teachers")
         .update({ is_logged_in: true })
         .eq("email", data.email);
 
-      // 4. SET LOCAL STORAGE
       localStorage.setItem("loggedIn", "true");
       localStorage.setItem("userEmail", email);
-
-      // 5. REDIRECT TO DASHBOARD
       router.replace("/dashboard");
 
     } catch (err) {
@@ -92,74 +76,74 @@ export default function Form() {
     }
   };
 
-
   return (
-    <div className='flex flex-col justify-center items-center sm:p-5 sm:rounded-lg w-screen h-screen
-    sm:w-[50%] sm:h-[80%] lg:w-[30%] lg:h-[70%] bg-white
-    sm:shadow-[0_5px_10px_0_rgba(0,0,0,0.5)] text-black'>
+    // Main background with the soft blue gradient from the image
+    <div className={`min-h-screen w-full flex items-center justify-center bg-gradient-to-tr from-blue-100 via-white to-blue-200 ${poppins.className}`}>
       
-      <img src={Logo.src} className='w-20 h-20 self-center' alt="kshslogo" />
-      <label className='text-2xl font-bold text-sky-700'>KVSHS LIS</label>
-
-      <form onSubmit={handleLogin} className='flex flex-col w-screen sm:w-full gap-3 p-2'>
+      {/* Container styled as a floating mobile card */}
+      <div className='flex flex-col justify-center items-center p-8 rounded-[2.5rem] w-[90%] max-w-[400px] bg-white shadow-2xl shadow-blue-200/50 text-black'>
         
-        <div className='relative w-full lg:w-full p-1 border border-gray-400 rounded-md'>
-          <input
-            type="email"
-            placeholder=" "
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className='peer w-full px-3 py-2 bg-white outline-none '
-            required
-          />
-          <label className='absolute left-3 top-2 text-gray-500 transition-all
-            peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500
-            peer-focus:-top-2 peer-focus:bg-white peer-focus:text-xs peer-focus:text-gray-700
-            peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:text-gray-700 
-            peer-not-placeholder-shown:-top-2 peer-not-placeholder-shown:bg-white '>
-            Email
-          </label>
+        {/* Logo and Branding */}
+        <div className="flex flex-col items-center mb-8">
+            <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
+                <img src={Logo.src} className='w-10 h-10' alt="logo" />
+            </div>
+            <h1 className='text-3xl font-bold text-slate-800 tracking-tight'>KVSHS LIS</h1>
         </div>
 
-        <div className='relative w-full lg:w-full p-1 border border-gray-400 rounded-md'>
-          <input
-            type="password"
-            placeholder=" "
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className='peer w-full px-3 py-2  outline-none '
-            required
-          />
-          <label className='absolute left-3 top-2 text-gray-500 transition-all
-            peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500
-            peer-focus:-top-2 peer-focus:bg-white peer-focus:text-xs peer-focus:text-gray-700
-            peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:text-gray-700 
-            peer-not-placeholder-shown:-top-2 peer-not-placeholder-shown:bg-white '>
-            Password
-          </label>
+        <form onSubmit={handleLogin} className='flex flex-col w-full gap-5'>
+          
+          {/* Email Input */}
+          <div className='relative w-full border border-gray-200 rounded-xl bg-gray-50/50'>
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className='w-full px-4 py-4 bg-transparent outline-none text-sm'
+              required
+            />
+          </div>
+
+          {/* Password Input */}
+          <div className='relative w-full border border-gray-200 rounded-xl bg-gray-50/50'>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className='w-full px-4 py-4 bg-transparent outline-none text-sm'
+              required
+            />
+          </div>
+
+          {/* Gradient Button from Design */}
+          <button
+            type="submit"
+            disabled={loading}
+            className='w-full mt-2 bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white 
+            font-bold py-4 rounded-full shadow-lg shadow-blue-200 transition-all active:scale-[0.98] disabled:bg-gray-300'>
+              {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+
+        {/* Footer Links */}
+        <div className="flex flex-row justify-between w-full mt-8 px-2">
+          <button 
+            onClick={() => router.push("/forgotpassword")}
+            className="text-xs font-semibold text-sky-600 hover:text-sky-800 transition-colors"
+          >
+            Forget Password
+          </button>
+
+          <button 
+            onClick={() => router.push("/register")}
+            className="text-xs font-semibold text-sky-600 hover:text-sky-800 transition-colors"
+          >
+            Create an Account
+          </button>
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className='w-full bg-sky-600 hover:bg-sky-700 text-white 
-          font-semibold py-2 rounded-md cursor-pointer disabled:bg-gray-400'>
-           Login
-        </button>
-      </form>
-
-      <div className={`${poppins.className} flex flex-row justify-between w-[clamp(250px,85%,350px)]`}>
-        <label className="text-[clamp(12px,1.5vw,16px)] text-sky-700 hover:text-sky-900 cursor-pointer mt-2"
-          onClick={() => router.push("/forgotpassword")}
-        >
-          Forget Password
-        </label>
-
-        <span className="w-0.5 h-[70%]  bg-sky-500 self-center" />
-        <label className="text-[clamp(12px,1.5vw,16px)] text-sky-700 hover:text-sky-900 cursor-pointer mt-2"
-          onClick={() => router.push("/register")}>
-          Create an Account
-        </label>
       </div>
 
       {loading && <LoadingScreen />}
