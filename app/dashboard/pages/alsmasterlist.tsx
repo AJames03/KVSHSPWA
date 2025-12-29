@@ -20,7 +20,7 @@ export default function ALSMasterList() {
   const [strand, setStrand] = useState('ABM')
   const [section, setSection] = useState('A')
   const [yearLevel, setYearLevel] = useState('11')
-  const [adviser, setAdviser] = useState('')
+  const [adviser, setAdviser] = useState('Loading...')
   const [students, setStudents] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -38,6 +38,8 @@ export default function ALSMasterList() {
     setOpenYearLevel(dropdown === 'yearLevel' ? !openYearLevel : false)
   }
 
+  // --- FIXED FETCH FUNCTIONS ---
+
   const fetchStudents = async () => {
     const { data, error } = await supabase
       .from('ALS')
@@ -45,19 +47,39 @@ export default function ALSMasterList() {
       .eq('strand', strand)
       .eq('gradeLevel', Number(yearLevel))
       .eq('section', section)
-    if (!error) setStudents(data || [])
+    
+    if (error) {
+      console.error("Error fetching students:", error.message)
+      setStudents([])
+    } else {
+      setStudents(data || [])
+    }
   }
 
   const fetchAdviser = async () => {
-    const { data } = await supabase
+    // We remove .single() to avoid the 406 error
+    const { data, error } = await supabase
       .from('sections')
       .select('adviser')
       .eq('strand', strand)
       .eq('year_level', Number(yearLevel))
       .eq('section_name', section)
-      .single()
-    setAdviser(data?.adviser || 'No Adviser Assigned')
+
+    if (error) {
+      console.error("Error fetching adviser:", error.message)
+      setAdviser('Error loading')
+      return
+    }
+
+    // Safely check if data exists and has at least one row
+    if (data && data.length > 0) {
+      setAdviser(data[0].adviser)
+    } else {
+      setAdviser('No Adviser Assigned')
+    }
   }
+
+  // --- END OF FIXES ---
 
   const formatSex = (sex: string) => (sex?.toLowerCase().startsWith('m') ? 'Male' : 'Female')
   const formatName = (s: any) => `${s.lname}${s.ename ? ' ' + s.ename : ''}, ${s.fname} ${s.mname || ''}`
@@ -79,89 +101,76 @@ export default function ALSMasterList() {
   return (
     <div className={`${poppins.className} flex flex-col h-full w-full max-w-7xl mx-auto gap-4 p-2 lg:p-6`}>
       
-      {/* 🔹 Filter Section */}
       {/* 🔹 HERO / FILTER SECTION */}
-{/* Nagdagdag tayo ng 'z-50' para masiguradong nasa ibabaw ito ng listahan ng mga estudyante */}
-<section className="relative z-50 bg-white/40 backdrop-blur-xl p-6 lg:p-8 rounded-[2.5rem] border border-white/60 shadow-2xl shadow-blue-200/40">
-  
-  {/* Light Effect Background */}
-  <div className="absolute -top-24 -right-24 w-64 h-64 bg-sky-400/10 blur-[100px] rounded-full pointer-events-none"></div>
-  <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-400/10 blur-[100px] rounded-full pointer-events-none"></div>
+      <section className="relative z-50 bg-white/40 backdrop-blur-xl p-6 lg:p-8 rounded-[2.5rem] border border-white/60 shadow-2xl shadow-blue-200/40">
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-sky-400/10 blur-[100px] rounded-full pointer-events-none"></div>
+        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-400/10 blur-[100px] rounded-full pointer-events-none"></div>
 
-  <div className="relative flex flex-col gap-6">
-    
-    {/* Header Part */}
-    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-      <div>
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-sky-200">
-            <i className="bi bi-people-fill text-xl"></i>
+        <div className="relative flex flex-col gap-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-sky-200">
+                  <i className="bi bi-people-fill text-xl"></i>
+                </div>
+                <h1 className="text-2xl lg:text-4xl font-black text-slate-800 tracking-tight leading-none">
+                  ALS Master List
+                </h1>
+              </div>
+              <div className="flex items-center gap-2 px-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <p className="text-xs lg:text-sm font-bold text-slate-500 uppercase tracking-wider">
+                  Adviser: <span className="text-sky-600">{adviser}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="hidden lg:block">
+              <div className="bg-sky-100/50 border border-sky-200 px-4 py-2 rounded-2xl">
+                <p className="text-[10px] font-black text-sky-600 uppercase">Registered Students</p>
+                <p className="text-xl font-black text-sky-700">{filteredStudents.length}</p>
+              </div>
+            </div>
           </div>
-          <h1 className="text-2xl lg:text-4xl font-black text-slate-800 tracking-tight leading-none">
-            ALS Master List
-          </h1>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center bg-white/50 p-3 rounded-[2rem] border border-white/80 shadow-inner relative">
+            <div className="lg:col-span-5 flex flex-wrap md:flex-nowrap gap-2">
+              <FilterDropdown 
+                label={strand} 
+                options={optionStrand} 
+                isOpen={openStrand} 
+                toggle={() => handleDropdown('strand')} 
+                onSelect={(val: string) => { setStrand(val); setOpenStrand(false); }} 
+              />
+              <FilterDropdown 
+                label={section} 
+                options={optionSection} 
+                isOpen={openSection} 
+                toggle={() => handleDropdown('section')} 
+                onSelect={(val: string) => { setSection(val); setOpenSection(false); }} 
+              />
+              <FilterDropdown 
+                label={yearLevel} 
+                options={optionYearLevel} 
+                isOpen={openYearLevel} 
+                toggle={() => handleDropdown('yearLevel')} 
+                onSelect={(val: string) => { setYearLevel(val); setOpenYearLevel(false); }} 
+              />
+            </div>
+
+            <div className="lg:col-span-7 relative group">
+              <i className="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-500 transition-colors"></i>
+              <input 
+                type="text" 
+                placeholder="Search LRN or Student Name..." 
+                className="w-full bg-white border border-slate-100 pl-12 pr-4 py-3.5 rounded-[1.5rem] outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-400 transition-all text-sm font-medium shadow-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2 px-1">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <p className="text-xs lg:text-sm font-bold text-slate-500 uppercase tracking-wider">
-            Adviser: <span className="text-sky-600">{adviser}</span>
-          </p>
-        </div>
-      </div>
-
-      {/* Quick Badge para sa Mobile/Desktop */}
-      <div className="hidden lg:block">
-        <div className="bg-sky-100/50 border border-sky-200 px-4 py-2 rounded-2xl">
-          <p className="text-[10px] font-black text-sky-600 uppercase">Registered Students</p>
-          <p className="text-xl font-black text-sky-700">{filteredStudents.length}</p>
-        </div>
-      </div>
-    </div>
-
-    {/* Controls Part (Dropdowns & Search) */}
-    {/* Tinanggal ang 'overflow-hidden' dito para hindi maputol ang menu */}
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center bg-white/50 p-3 rounded-[2rem] border border-white/80 shadow-inner relative">
-      
-      {/* Dropdowns Group */}
-      <div className="lg:col-span-5 flex flex-wrap md:flex-nowrap gap-2">
-        <FilterDropdown 
-          label={strand} 
-          options={optionStrand} 
-          isOpen={openStrand} 
-          toggle={() => handleDropdown('strand')} 
-          onSelect={(val: string) => { setStrand(val); setOpenStrand(false); }} 
-        />
-        <FilterDropdown 
-          label={section} 
-          options={optionSection} 
-          isOpen={openSection} 
-          toggle={() => handleDropdown('section')} 
-          onSelect={(val: string) => { setSection(val); setOpenSection(false); }} 
-        />
-        <FilterDropdown 
-          label={yearLevel} 
-          options={optionYearLevel} 
-          isOpen={openYearLevel} 
-          toggle={() => handleDropdown('yearLevel')} 
-          onSelect={(val: string) => { setYearLevel(val); setOpenYearLevel(false); }} 
-        />
-      </div>
-
-      {/* Search Bar Group */}
-      <div className="lg:col-span-7 relative group">
-        <i className="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-500 transition-colors"></i>
-        <input 
-          type="text" 
-          placeholder="Search LRN or Student Name..." 
-          className="w-full bg-white border border-slate-100 pl-12 pr-4 py-3.5 rounded-[1.5rem] outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-400 transition-all text-sm font-medium shadow-sm"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-    </div>
-
-  </div>
-</section>
+      </section>
 
       {/* 🔹 Table Section */}
       <section className="flex-1 bg-white/70 backdrop-blur-md rounded-[1rem] border border-white overflow-hidden shadow-2xl flex flex-col">
@@ -228,7 +237,6 @@ export default function ALSMasterList() {
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               className="relative bg-white w-full lg:max-w-2xl h-[85vh] lg:h-auto lg:max-h-[90vh] rounded-t-[1rem] lg:rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col"
             >
-              {/* Modal Header */}
               <div className="p-6 border-b flex items-center justify-between bg-slate-50">
                 <div className="flex items-center gap-3">
                     <img src={Logo.src} className="w-10 h-10 object-contain" alt="logo" />
@@ -242,7 +250,6 @@ export default function ALSMasterList() {
                 </button>
               </div>
 
-              {/* Modal Content */}
               <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InfoCard label="Full Name" value={formatName(selectedStudent)} icon="person-vcard" />
