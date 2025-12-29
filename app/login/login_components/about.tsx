@@ -1,6 +1,7 @@
 'use client'
 // Using public icon path instead
 import { Poppins } from 'next/font/google'
+import Logo from '@/app/favicon.ico'
 
 const poppins = Poppins({
   weight: ['400', '600', '700'],
@@ -13,7 +14,7 @@ export default function about() {
   return (
     <div className='flex flex-col items-center text-center space-y-6'>
         <div className="w-20 h-20 bg-gradient-to-br from-sky-400 to-sky-600 rounded-2xl flex items-center justify-center shadow-lg">
-          <img src="/icon-192.png" className='w-16 h-16 rounded-xl' alt="kshslogo" />
+          <img src={Logo.src} className='w-16 h-16 rounded-xl' alt="kshslogo" />
         </div>
 
         <div>

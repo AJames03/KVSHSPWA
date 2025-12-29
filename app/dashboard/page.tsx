@@ -84,7 +84,7 @@ export default function Page() {
       {/* SIDEBAR - Desktop Only (Hidden on Mobile) */}
       <aside className="hidden lg:flex flex-col w-72 bg-white/70 backdrop-blur-xl border-r border-white/50 p-6 shadow-xl">
         <div className="flex items-center gap-4 mb-10 p-2 bg-white rounded-2xl shadow-sm border border-blue-50">
-            <img src="/logo.png" alt="logo" className="w-10 h-10 object-contain" />
+            <img src={Logo.src} alt="logo" className="w-10 h-10 object-contain" />
             <div>
                 <h1 className="text-lg font-bold text-slate-800 leading-none">KVSHS LIS</h1>
                 <p className="text-[10px] text-sky-600 font-bold uppercase mt-1">Teacher Hub</p>
