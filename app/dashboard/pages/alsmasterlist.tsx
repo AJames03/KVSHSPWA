@@ -99,7 +99,7 @@ export default function ALSMasterList() {
   }, [strand, section, yearLevel])
 
   return (
-    <div className={`${poppins.className} flex flex-col h-full w-full max-w-7xl mx-auto gap-4 p-2 lg:p-6`}>
+    <div className={`${poppins.className} flex flex-col h-full w-full max-w-none mx-0 lg:max-w-7xl lg:mx-auto gap-4 lg:p-6`}>
       
       {/* 🔹 HERO / FILTER SECTION */}
       <section className="relative z-50 bg-white/40 backdrop-blur-xl p-6 lg:p-8 rounded-[2.5rem] border border-white/60 shadow-2xl shadow-blue-200/40">
@@ -189,11 +189,10 @@ export default function ALSMasterList() {
             <tbody className="divide-y divide-slate-100">
               <AnimatePresence>
                 {filteredStudents.map((student, index) => (
-                  <motion.tr 
+                  <motion.tr
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    key={index} 
-                    className="hover:bg-sky-50/50 transition-colors cursor-pointer group"
-                    onClick={() => { setSelectedStudent(student); setIsModalOpen(true); }}
+                    key={index}
+                    className="hover:bg-sky-50/50 transition-colors group"
                   >
                     <td className="p-4">
                       <p className="font-bold text-slate-700 text-sm lg:text-base group-hover:text-sky-600 transition-colors">{formatName(student)}</p>
@@ -206,8 +205,11 @@ export default function ALSMasterList() {
                       </span>
                     </td>
                     <td className="p-4 text-center">
-                      <button className="w-8 h-8 rounded-full hover:bg-white shadow-sm transition-all text-slate-400 hover:text-sky-500">
-                        <i className="bi bi-chevron-right"></i>
+                      <button
+                        onClick={() => { setSelectedStudent(student); setIsModalOpen(true); }}
+                        className="w-9 h-9 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center mx-auto hover:bg-sky-100 hover:text-sky-600 transition-all"
+                      >
+                        <i className="bi bi-eye-fill"></i>
                       </button>
                     </td>
                   </motion.tr>
