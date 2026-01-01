@@ -15,6 +15,8 @@ export default function YourSched() {
   const [mounted, setMounted] = useState(false)
   const [dateData, setDateData] = useState<any[]>([])
   const [sections, setSections] = useState<any[]>([])
+  const [scheduleError, setScheduleError] = useState(false)
+  const [sectionsError, setSectionsError] = useState(false)
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
   const today = new Date()
   const currentDay = days[today.getDay() - 1]
@@ -25,10 +27,15 @@ export default function YourSched() {
     const { data, error } = await supabase
       .from('schedules')
       .select('sections(strand, year_level, section_name, section_type)')
-    if (error) return
+    if (error) {
+      console.error('Error fetching sections:', error)
+      setSectionsError(true)
+      return
+    }
     const sectionList = data.map((item) => item.sections).filter((s) => s)
     const uniqueSections = Array.from(new Set(sectionList.map((s) => JSON.stringify(s)))).map((s) => JSON.parse(s))
     setSections(uniqueSections)
+    setSectionsError(false)
   }
 
   const fetchSchedule = async () => {
@@ -39,7 +46,11 @@ export default function YourSched() {
       .select(`id, day, time_slot, subjects(subject_title, teacher_email), sections(strand, year_level, section_name, section_type)`)
       .eq('day', currentDay)
 
-    if (error) return
+    if (error) {
+      console.error('Error fetching schedule:', error)
+      setScheduleError(true)
+      return
+    }
     const filteredSchedules = data.filter((schedule: any) => schedule.subjects && schedule.subjects.teacher_email === email)
 
     const now = new Date()
@@ -47,7 +58,18 @@ export default function YourSched() {
       const getTime = (t: string) => new Date(`1970-01-01 ${t.split(' - ')[0]}`).getTime()
       return getTime(a.time_slot) - getTime(b.time_slot)
     })
-    setDateData(sortedSchedules)
+
+    // Remove duplicates based on time_slot
+    const uniqueSchedules = []
+    const seen = new Set()
+    for (const schedule of sortedSchedules) {
+      if (!seen.has(schedule.time_slot)) {
+        seen.add(schedule.time_slot)
+        uniqueSchedules.push(schedule)
+      }
+    }
+    setDateData(uniqueSchedules)
+    setScheduleError(false)
   }
 
   useEffect(() => { fetchSections(); fetchSchedule(); }, [])
@@ -65,7 +87,13 @@ export default function YourSched() {
 
       {/* Schedule List */}
       <div className="flex flex-col gap-4">
-        {dateData.length > 0 ? (
+        {scheduleError ? (
+          <div className="flex flex-col items-center justify-center py-20 opacity-40">
+            <i className="bi bi-wifi-off text-6xl mb-4"></i>
+            <p className="font-bold">Failed to load schedule</p>
+            <p className="text-sm">Check your internet connection and try again</p>
+          </div>
+        ) : dateData.length > 0 ? (
           dateData.map((schedule, index) => {
             const [start, end] = schedule.time_slot.split(' - ')
             const now = new Date()

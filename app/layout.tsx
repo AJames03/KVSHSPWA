@@ -16,6 +16,7 @@ export const metadata: Metadata = {
   title: 'KVSHS LIS',
   description: 'A progressive web app built with Next.js',
   manifest: '/manifest.json',
+  viewport: 'width=device-width, initial-scale=1',
 };
 
 export default function RootLayout({

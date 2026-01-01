@@ -26,6 +26,7 @@ export default function Grading() {
   const [selectedSubject, setSelectedSubject] = useState<any>(null)
   const [students, setStudents] = useState<Student[]>([])
   const [grades, setGrades] = useState<Record<string, any>>({})
+  const [originalGrades, setOriginalGrades] = useState<Record<string, any>>({})
   const [isSaving, setIsSaving] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -44,10 +45,12 @@ export default function Grading() {
 
   const getStatus = (finalAvg: string) => {
     if (finalAvg === '-') return { label: 'PENDING', class: 'bg-slate-100 text-slate-400' }
-    return Number(finalAvg) >= 75 
+    return Number(finalAvg) >= 75
       ? { label: 'PASSED', class: 'bg-emerald-100 text-emerald-600' }
       : { label: 'FAILED', class: 'bg-rose-100 text-rose-600' }
   }
+
+  const hasChanges = () => JSON.stringify(grades) !== JSON.stringify(originalGrades)
 
   useEffect(() => {
     if (!selectedSection) { setStudents([]); return; }
@@ -61,11 +64,12 @@ export default function Grading() {
   }, [selectedSection]);
 
   const fetchGrades = async () => {
-    if (!selectedSection || !selectedSubject) { setGrades({}); return; }
+    if (!selectedSection || !selectedSubject) { setGrades({}); setOriginalGrades({}); return; }
     const { data } = await supabase.from('grades').select('*').eq('section_id', selectedSection.id).eq('subject_id', selectedSubject.id);
     const gradeMap: Record<string, any> = {};
     data?.forEach(item => { gradeMap[item.student_lrn] = item; });
     setGrades(gradeMap);
+    setOriginalGrades(JSON.parse(JSON.stringify(gradeMap)));
   }
 
   useEffect(() => { fetchGrades(); }, [selectedSection, selectedSubject]);
@@ -142,7 +146,7 @@ export default function Grading() {
             <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Portal Entry System</p>
           </div>
           <div className="flex flex-col md:flex-row gap-3">
-             <div className="flex bg-slate-100 p-1 rounded-xl">
+             <div className="flex flex-col md:flex-row bg-slate-100 p-1 rounded-xl gap-1 md:gap-0">
                 <Semester onSelect={setSelectedSemester} />
                 <Section onSelect={setSelectedSection} />
                 <Subject selectedSection={selectedSection} selectedSemester={selectedSemester} onSelect={setSelectedSubject} />
@@ -264,8 +268,8 @@ export default function Grading() {
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={saveGrades}
-            disabled={isSaving || !selectedSubject}
-            className={`pointer-events-auto flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl transition-all ${isSaving || !selectedSubject ? 'bg-slate-300 text-slate-500' : 'bg-slate-900 text-white active:bg-blue-600 ring-4 ring-white shadow-black/20'}`}
+            disabled={isSaving || !selectedSubject || !hasChanges()}
+            className={`pointer-events-auto flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl transition-all ${isSaving || !selectedSubject || !hasChanges() ? 'bg-slate-300 text-slate-500' : 'bg-slate-900 text-white active:bg-blue-600 ring-4 ring-white shadow-black/20'}`}
           >
             {isSaving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
             <span>{isSaving ? 'Saving...' : 'Commit Changes'}</span>

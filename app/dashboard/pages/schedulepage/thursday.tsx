@@ -101,7 +101,7 @@ export default function thursday() {
             {filteredData.length === 0 ? (
                 <p className="text-center">No schedules for Thursday</p>
             ) : (
-                <ul className="grid grid-cols-1 lg:grid-cols-3 h-1 gap-3 ">
+                <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 h-1 gap-3 ">
                     {filteredData.map((item) => (
                         <li 
                         key={item.id}

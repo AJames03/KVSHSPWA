@@ -21,6 +21,7 @@ export default function Profile() {
   const [userName, setUserName] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
   const [activeTab, setActiveTab] = useState<'profile' | 'settings'>('profile')
+  const [teacherError, setTeacherError] = useState(false)
 
   const [firstname, setFirstname] = useState('')
   const [displayedFirstname, setDisplayedFirstname] = useState('')
@@ -85,6 +86,7 @@ export default function Profile() {
 
     if (error) {
       console.error('Error fetching teacher:', error)
+      setTeacherError(true)
       return
     }
 
@@ -108,6 +110,7 @@ export default function Profile() {
           ? null
           : `${data.firstname ?? ''} ${data.middlename ?? ''} ${data.surname ?? ''}`.trim()
       )
+      setTeacherError(false)
     }
   }
 
